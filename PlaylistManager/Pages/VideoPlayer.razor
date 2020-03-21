@@ -1,0 +1,67 @@
+﻿@using MatBlazor
+@using PlaylistManager.Models
+@inject IJSRuntime JSRuntime
+
+
+
+
+<div id="makePlayer" class="text-center" style="width:30em; margin-left:10em">
+    <div id="player">
+
+    </div>
+</div>
+<div>
+    <button class="btn btn-primary" @onclick="OkClick">Close Player</button>
+</div>
+
+
+
+@code {
+    [CascadingParameter]
+    public List<VideoModel> VideoUrls { get; set; }
+    [CascadingParameter]
+    public bool videosReady { get; set; }
+    [Parameter]
+    public EventCallback<bool> videosReadyChanged { get; set; }
+    private List<VideoModel> PrivateVideos { get; set; }
+    private string videoId;
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        PrivateVideos = VideoUrls;
+        var refThis = DotNetObjectReference.Create(this);
+        var firstVideo = PrivateVideos.OrderBy(x => x.PreferenceID).FirstOrDefault();
+        videoId = firstVideo.VideoID;
+        PrivateVideos.Remove(firstVideo);
+        await JSRuntime.InvokeAsync<object>("startYouTube");
+        await Task.Delay(1000);
+        await JSRuntime.InvokeAsync<object>("getYouTube", refThis, videoId);
+
+    }
+
+
+    protected async Task OkClick()
+    {
+        videosReady = false;
+        await JSRuntime.InvokeAsync<object>("removeYouTube");
+        await Task.Delay(5000);
+        await JSRuntime.InvokeAsync<object>("addPlayer");
+    }
+    [JSInvokable]
+    public async Task GetNextVideo()
+    {
+        await JSRuntime.InvokeAsync<object>("removeYouTube");
+        await JSRuntime.InvokeAsync<object>("addPlayer");
+        var refThis = DotNetObjectReference.Create(this);
+        var firstVideo = PrivateVideos.OrderBy(x => x.PreferenceID).FirstOrDefault();
+        videoId = firstVideo.VideoID;
+        PrivateVideos.Remove(firstVideo);
+        var debugvids = PrivateVideos;
+        await JSRuntime.InvokeAsync<object>("startYouTube");
+        await Task.Delay(1000);
+        await JSRuntime.InvokeAsync<object>("getYouTube", refThis, videoId);
+
+    }
+
+}

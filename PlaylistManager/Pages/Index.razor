@@ -1,0 +1,176 @@
+﻿@page "/"
+@using PlaylistManager.Models
+@using PlaylistManager.Data
+@inject PlaylistService PlaylistService
+@inject PlaylistDatabaseService Database
+
+<div class="" style="width:9em; padding:.7em">
+    <p>Current playlist:</p>
+    <h3>
+        @if (SelectedPlaylist != null)
+        {
+            @SelectedPlaylist.Name
+        }
+    </h3>
+</div>
+<div class="text-center">
+
+    @if (pageReady)
+    {
+        <button class="btn btn-primary" @onclick=@(() => ChangePlaylist())>Change playlist</button>
+    }
+    else
+    {
+        <h2>Sign in to create or add to playlists</h2>
+    }
+</div>
+
+<div class="card-columns-three" style="width:60em">
+    @if (showPlaylists)
+    {
+        @if (pageReady)
+        {
+            <div class="card" style="width:22em; flex:none; border-radius:35px; border:5px solid #0094ff;
+        padding:15px; height:auto;">
+
+                <h6>Select Playlist</h6>
+                <select class="form-control" @bind="playlistName">
+                    <option value=""></option>
+                    @foreach (var playlist in UserPlaylists)
+                    {
+                        <option value="@playlist.Name">@playlist.Name</option>
+                    }
+                </select>
+                <button class="btn btn-primary" @onclick=@(() => SelectPlaylist(playlistName))>Select playlist</button>
+
+            </div>
+            <div class="card text-center" style="width:12em; flex:none; border-radius:35px; border:5px solid #0094ff;
+        padding:15px; height:auto; margin-left:5em">
+                <MatSlideToggle Style="margin-left:3.7em" @bind-Value="togglePlaylist"></MatSlideToggle>
+                <span>Add new Playlist</span>
+            </div>
+        }
+        @if (togglePlaylist)
+        {
+
+            <div class="card" style="width:22em; flex:none; border-radius:35px; border:5px solid #0094ff;
+        padding:15px; height:auto;">
+                <MatTextField @bind-Value="newPlaylist" Label="Add new Playlist"></MatTextField>
+                <button class="btn btn-primary" @onclick=@(() => AddNewPlaylist(newPlaylist))>Add</button>
+            </div>
+        }
+    }
+
+
+</div>
+@if (SelectedPlaylist != null)
+{
+    <div class="text-center content align-content-center">
+
+        <button class="btn btn-primary" @onclick="FromSearch">Search for videos</button>
+        <button class="btn btn-primary" @onclick="FromPlaylists">Watch Videos from Playlist</button>
+        <button class="btn btn-primary" @onclick="FromDelete">Delete Videos from playlist</button>
+
+    </div>
+}
+<div>
+
+    @if (fromPlaylists)
+    {
+        <CascadingValue Value="SelectedPlaylist">
+            <Playlists VideosChanged=@UpdateVideosList />
+        </CascadingValue>
+    }
+    @if (fromSearch)
+    {
+        <CascadingValue Value="SelectedPlaylist">
+            <SearchResults />
+        </CascadingValue>
+    }
+    @if (fromDelete)
+    {
+        <CascadingValue Value="SelectedPlaylist">
+            <DeleteVideos />
+        </CascadingValue>
+    }
+</div>
+
+@code{
+    [Parameter]
+    public List<PlaylistModel> UserPlaylists { get; set; }
+    [Parameter]
+    public PlaylistModel SelectedPlaylist { get; set; }
+    [Parameter]
+    public List<VideoModel> PlaylistVideos { get; set; }
+    private string playlistName;
+    public string newPlaylist { get; set; }
+    public List<string> PlaylistNames { get; set; }
+    private bool pageReady;
+    private bool fromPlaylists;
+    private bool fromSearch;
+    private bool togglePlaylist = false;
+    private bool showPlaylists = false;
+    private bool fromDelete;
+    protected override async Task OnInitializedAsync()
+    {
+        pageReady = false;
+        UserPlaylists = await Database.GetUserPlaylists();
+        if (Database.HasUser)
+        {
+            pageReady = true;
+            showPlaylists = true;
+        }
+
+    }
+    private async Task AddNewPlaylist(string playlistName)
+    {
+        await Task.Run(() => Database.AddPlaylist(playlistName));
+        UserPlaylists.Add(new PlaylistModel() { Name = playlistName });
+        SelectedPlaylist = UserPlaylists.Where(x => x.Name == playlistName).FirstOrDefault();
+        showPlaylists = false;
+    }
+    private void SelectPlaylist(string playlist)
+    {
+        SelectedPlaylist = UserPlaylists.Where(x => x.Name == playlistName).FirstOrDefault();
+        showPlaylists = false;
+    }
+    private void FromSearch()
+    {
+        fromSearch = true;
+        fromPlaylists = false;
+        fromDelete = false;
+    }
+    private async Task FromPlaylists()
+    {
+        PlaylistVideos = await Database.GetPlaylistVideos(SelectedPlaylist);
+        fromSearch = false;
+        fromPlaylists = true;
+        fromDelete = false;
+    }
+    private async Task FromDelete()
+    {
+        PlaylistVideos = await Database.GetPlaylistVideos(SelectedPlaylist);
+        fromSearch = false;
+        fromPlaylists = false;
+        fromDelete = true;
+    }
+
+    public void UpdateVideosList(List<VideoModel> videos)
+    {
+        PlaylistVideos = videos;
+        var debugvideos = PlaylistVideos;
+        //StateHasChanged();
+    }
+    private async Task ChangePlaylist()
+    {
+        SelectedPlaylist = new PlaylistModel();
+        await Task.Run(() =>
+        {
+            showPlaylists = true;
+            fromSearch = false;
+            fromPlaylists = false;
+            fromDelete = false;
+        });
+    }
+
+}

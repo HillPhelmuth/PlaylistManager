@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>aspnet-PlaylistManager-7A4DF3DF-32E5-482B-BE83-5249AA215B60</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Saved ReCreate Queries\**" />
+    <Content Remove="Saved ReCreate Queries\**" />
+    <EmbeddedResource Remove="Saved ReCreate Queries\**" />
+    <None Remove="Saved ReCreate Queries\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="blazor-dragdrop" Version="1.1.5" />
+    <PackageReference Include="Google.Apis" Version="1.44.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.44.0" />
+    <PackageReference Include="Google.Apis.Core" Version="1.44.0" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.44.0.1869" />
+    <PackageReference Include="MatBlazor" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+</Project>

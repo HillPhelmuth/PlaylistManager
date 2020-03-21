@@ -1,0 +1,40 @@
+﻿@using PlaylistManager.Models
+@using PlaylistManager.Data
+@inject IJSRuntime JSRuntime
+@inject PlaylistDatabaseService Database
+<h3>Delete Videos from playlist</h3>
+<div class="text-center">
+    <button class="btn btn-primary" @onclick="DeleteSelected">Delete selected</button>
+    @foreach (var video in localVideos)
+    {
+        <MatCheckbox @bind-Value="video.IsRemoved">@video.Title</MatCheckbox>
+    }
+
+
+</div>
+
+@code {
+
+    [CascadingParameter]
+    public PlaylistModel Playlist { get; set; }
+    private List<VideoModel> localVideos = new List<VideoModel>();
+    private bool isReady = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        localVideos = await Database.GetPlaylistVideos(Playlist);
+        isReady = true;
+    }
+
+    private async Task DeleteSelected()
+    {
+        var selectedVideos = localVideos.Where(x => x.IsRemoved);
+        foreach (var video in selectedVideos)
+        {
+            await Database.RemoveVideoFromPlaylist(video);
+        }
+        localVideos = await Database.GetPlaylistVideos(Playlist);
+        StateHasChanged(); 
+
+    }
+}
