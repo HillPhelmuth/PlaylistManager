@@ -22,7 +22,7 @@
     {
         <span><button class="btn btn-primary" @onclick="AddVideosToDatabase">Add</button><br /></span>
         <div class="col" style="width:32em">
-            <div class="card-columns-two" style="width:42em; height:auto; ">
+            <div class="card-columns-two" style="width:42em; height:auto">
                 @foreach (var video in Videos)
                 {
                     <div class="card mat-elevation-z24" style="height:auto; width:16em; flex:none; border-radius:.5em; border:.2em solid #000000; padding:1px; justify-content:center; margin:.3em">
@@ -50,7 +50,6 @@
                     <p>@video.Title <img style="float:left" src="@video.ThumbnailUrl" /></p>
                     <button class="btn btn-primary" @onclick=@(() =>RemoveFromPlaylist(video))>Remove</button>
                 </div>
-
             }
         </div>
     }
@@ -58,7 +57,7 @@
 
 @code{
     [Parameter]
-    public string VideoUrl { get; set; }
+    public List<VideoModel> VideoUrl { get; set; }
     [CascadingParameter]
     public PlaylistModel Playlist { get; set; }
     public string SearchYouTube { get; set; }
@@ -75,8 +74,10 @@
     }
     public async Task PlayVideo(string videoID)
     {
-        var video = await Task.FromResult(videoID);
-        VideoUrl = $"https://www.youtube.com/embed/{video}";
+        VideoUrl = new List<VideoModel>();
+        var vid = Videos.Where(x => x.VideoID == videoID).FirstOrDefault();
+        await Task.Run(() => VideoUrl.Add(vid));
+        //var video = await Task.FromResult(videoID);        
         playReady = true;
     }
     public async Task AddVideoToPlaylist(VideoModel video)

@@ -1,8 +1,13 @@
 ﻿@page "/"
 @using PlaylistManager.Models
 @using PlaylistManager.Data
+@using PlaylistManager.Controllers
+@using PlaylistManager.Extentions
+@inject IJSRuntime JSRuntime
 @inject PlaylistService PlaylistService
 @inject PlaylistDatabaseService Database
+@inject ExcelController ExcelService
+@inject NavigationManager NavigationManager
 
 <div class="" style="width:9em; padding:.7em">
     <p>Current playlist:</p>
@@ -70,7 +75,7 @@
         <button class="btn btn-primary" @onclick="FromSearch">Search for videos</button>
         <button class="btn btn-primary" @onclick="FromPlaylists">Watch Videos from Playlist</button>
         <button class="btn btn-primary" @onclick="FromDelete">Delete Videos from playlist</button>
-
+        <button class="btn btn-primary" @onclick="ExportVideosExcel">Excel</button>
     </div>
 }
 <div>
@@ -171,6 +176,13 @@
             fromPlaylists = false;
             fromDelete = false;
         });
+    }
+    private async Task ExportVideosExcel()
+    {
+        var baseUri = NavigationManager.BaseUri;        
+        var excelBytes = await ExcelService.ExportV2(SelectedPlaylist);
+        //await ExcelService.Export(SelectedPlaylist, baseUri);
+        await JSRuntime.SaveAs($"{SelectedPlaylist.Name}-{SelectedPlaylist.ID}.xlsx", excelBytes);
     }
 
 }

@@ -16,6 +16,7 @@ using Microsoft.Extensions.Hosting;
 using PlaylistManager.Areas.Identity;
 using PlaylistManager.Data;
 using Blazor.DragDrop.Core;
+using PlaylistManager.Controllers;
 
 namespace PlaylistManager
 {
@@ -47,6 +48,7 @@ namespace PlaylistManager
             services.AddSingleton<WeatherForecastService>();
             services.AddScoped<PlaylistService>();
             services.AddTransient<PlaylistDatabaseService>();
+            services.AddScoped<ExcelController>();
             services.AddHttpContextAccessor();
         }
 
