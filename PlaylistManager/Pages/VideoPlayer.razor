@@ -1,5 +1,6 @@
 ﻿@using MatBlazor
 @using PlaylistManager.Models
+@using PlaylistManager.Extentions
 @inject IJSRuntime JSRuntime
 
 
@@ -26,42 +27,38 @@
     private List<VideoModel> PrivateVideos { get; set; }
     private string videoId;
 
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         PrivateVideos = VideoUrls;
         var refThis = DotNetObjectReference.Create(this);
         var firstVideo = PrivateVideos.OrderBy(x => x.PreferenceID).FirstOrDefault();
         videoId = firstVideo.VideoID;
-        PrivateVideos.Remove(firstVideo);
-        await JSRuntime.InvokeAsync<object>("startYouTube");
+        PrivateVideos.Remove(firstVideo);        
+        await JSRuntime.StartYouTube();
         await Task.Delay(1000);
-        await JSRuntime.InvokeAsync<object>("getYouTube", refThis, videoId);
-
+        await JSRuntime.InvokeAsync<object>("getYouTube", refThis, videoId);        
     }
-
-
     protected async Task OkClick()
     {
-        videosReady = false;
-        await JSRuntime.InvokeAsync<object>("removeYouTube");
-        await Task.Delay(5000);
-        await JSRuntime.InvokeAsync<object>("addPlayer");
+        videosReady = false;        
+        await JSRuntime.StopYouTubePlayer();
+        await Task.Delay(3000);        
+        await JSRuntime.AddYouTubePlayer();
     }
     [JSInvokable]
     public async Task GetNextVideo()
-    {
-        await JSRuntime.InvokeAsync<object>("removeYouTube");
-        await JSRuntime.InvokeAsync<object>("addPlayer");
+    {        
+        await JSRuntime.StopYouTubePlayer();
+        
+        await JSRuntime.StartYouTube();
         var refThis = DotNetObjectReference.Create(this);
         var firstVideo = PrivateVideos.OrderBy(x => x.PreferenceID).FirstOrDefault();
         videoId = firstVideo.VideoID;
         PrivateVideos.Remove(firstVideo);
         var debugvids = PrivateVideos;
-        await JSRuntime.InvokeAsync<object>("startYouTube");
+        
+        await JSRuntime.AddYouTubePlayer();
         await Task.Delay(1000);
-        await JSRuntime.InvokeAsync<object>("getYouTube", refThis, videoId);
-
+        await JSRuntime.InvokeAsync<object>("getYouTube", refThis, videoId);        
     }
-
 }

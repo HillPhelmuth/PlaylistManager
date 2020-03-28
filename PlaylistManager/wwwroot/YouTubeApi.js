@@ -16,6 +16,9 @@
 //    console.log("Api ready");
 //    console.log(logstring);
 //}
+window.logitem = (logString) => {
+    console.log(logString);
+}
 window.removedItem = (number) => {
     var prefnum = number;
     console.log(prefnum);
@@ -79,16 +82,7 @@ window.getYouTube = (instance, video) => {
     function onPlayerReady(event) {        
         event.target.playVideo();
         console.log("player ready");
-    }
-
-    //window.startApi = function () {
-    //    var v = document.getElementById("player");
-
-    //    v.addEventListener("ended", function () {
-    //        DotNet.invokeMethodAsync("PlaylistManager", "PlayNext");
-    //        console.log("event listner triggered");
-    //    });
-    //}
+    }    
 }
 (function () {
 

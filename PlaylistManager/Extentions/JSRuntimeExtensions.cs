@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using Google.Apis.YouTube.v3.Data;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,23 @@ namespace PlaylistManager.Extentions
                 "playlistManager.interop.saveAsFile",
                 filename,
                 Convert.ToBase64String(data));
+        public static ValueTask<object> StartYouTube(this IJSRuntime JSRuntime)
+        {
+            return JSRuntime.InvokeAsync<object>("startYouTube");
+        }
+        public static ValueTask<object> AddYouTubePlayer(this IJSRuntime JSRuntime)
+        {
+            return JSRuntime.InvokeAsync<object>("addPlayer");
+        }
+        public static ValueTask<object> StopYouTubePlayer(this IJSRuntime JSRuntime)
+        {
+            return JSRuntime.InvokeAsync<object>("removeYouTube");
+        }
+        public static ValueTask Log(this IJSRuntime js, string message) => js.InvokeVoidAsync("logitem", message);
+        
+        //public static ValueTask<object> PlayVideoList(this IJSRuntime js, object obj, string videoId)
+        //{            
+        //    return js.InvokeAsync<object>("getYouTube", obj, videoId);
+        //}
     }
 }

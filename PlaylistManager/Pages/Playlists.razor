@@ -1,7 +1,11 @@
 ﻿@using PlaylistManager.Models
 @using PlaylistManager.Data
+@using PlaylistManager.Extentions
+@using PlaylistManager.Controllers
 @inject IJSRuntime JSRuntime
-@inject PlaylistDatabaseService Database
+@inject PlaylistLiteDbService Database
+@inject ExcelController ExcelService
+@inject NavigationManager NavigationManager
 <h3>Set your playlist order</h3>
 
 <div>
@@ -16,7 +20,8 @@
     @if (pageReady)
     {
         <div class="text-center">
-            <button @onclick="PlayVideosInOrder">Play Videos</button>
+            <button class="btn btn-primary" @onclick="PlayVideosInOrder">Play Videos</button>
+            <button class="btn btn-secondary" @onclick="ExportVideosExcel">Download</button>
             <ul class="list-group list-group-flush" style="line-height:1.6em">
                 <Dropzone>
                     @foreach (var video in Videos)
@@ -58,14 +63,6 @@
         Videos = await Database.GetPlaylistVideos(PlaylistName);
         pageReady = true;
     }
-    public Task PreferenceUp(VideoModel video)
-    {
-        return Task.FromResult(video.PreferenceID++);
-    }
-    public Task PreferenceDown(VideoModel video)
-    {
-        return Task.FromResult(video.PreferenceID--);
-    }
     public async Task PlayVideosInOrder()
     {
         OrderedVideos = Videos.OrderBy(x => x.PreferenceID).ToList();
@@ -75,20 +72,15 @@
         VideoUrls = OrderedVideos;
         foreach (var video in VideoUrls)
         {
-            await Database.UpdatePlaylistVideos(video, PlaylistName);
+            await Database.UpdatePlaylistVideos(video);
         }
         videosReady = true;
-
     }
-    //protected async Task RemoveFromPlaylist(VideoModel video)
-    //{
-    //    video.IsRemoved = true;
-    //    await Database.RemoveVideoFromPlaylist(video);
-    //    await Task.Run(() => Videos.Remove(video));
-    //    await VideosChanged.InvokeAsync(Videos);
-
-    //    //await JSRuntime.InvokeAsync<object>("removedItem", video.PreferenceID);
-    //    //StateHasChanged();
-    //}
-
+    private async Task ExportVideosExcel()
+    {
+        var baseUri = NavigationManager.BaseUri;
+        var excelBytes = await ExcelService.ExportV2(PlaylistName);
+        //await ExcelService.Export(SelectedPlaylist, baseUri);
+        await JSRuntime.SaveAs($"{PlaylistName.Name}-{PlaylistName.ID}.xlsx", excelBytes);
+    }
 }

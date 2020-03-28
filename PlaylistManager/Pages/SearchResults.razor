@@ -1,12 +1,12 @@
 ﻿@using PlaylistManager.Models
 @using PlaylistManager.Data
 @inject PlaylistService PlaylistService
-@inject PlaylistDatabaseService Database
+@inject PlaylistLiteDbService Database
 
 <h3>Search YouTube</h3>
 
 <div class="text-center">
-    <input type="text" @bind="SearchYouTube" />
+    <input type="text" @bind="SearchYouTube" @onkeyup="SearchVideoKeyup" />
     <button class="btn btn-primary" @onclick="GetVideoResults">Search</button>
 </div>
 <div>
@@ -20,36 +20,44 @@
 <div class="row">
     @if (videosReady)
     {
-        <span><button class="btn btn-primary" @onclick="AddVideosToDatabase">Add</button><br /></span>
-        <div class="col" style="width:32em">
-            <div class="card-columns-two" style="width:42em; height:auto">
+        <span><button class="btn btn-primary" @onclick="AddVideosToDatabase">Add all</button><br /></span>
+        <div class="col" style="width:36em">
+            <div class="text-center">
+                <h4>Add or watch videos</h4><br />
+            </div>
+            <div class="card-columns-two" style="width:36em; height:auto">
                 @foreach (var video in Videos)
                 {
-                    <div class="card mat-elevation-z24" style="height:auto; width:16em; flex:none; border-radius:.5em; border:.2em solid #000000; padding:1px; justify-content:center; margin:.3em">
+                    <div class="card mat-elevation-z24" style="height:auto; width:17em; flex:none; border-radius:.5em; border:.2em solid #000000; padding:1px; justify-content:center; margin:.3em">
                         <MatTooltip Tooltip="@video.Description" Wrap="true">
-                            <p>@video.Title <img src="@video.ThumbnailUrl" /></p>
+                            <div class="card-header">@video.Title</div>
+                            <div class="card-body">
+                                click to watch
+                            <button @onclick=@(() => PlayVideo(video))><img src="@video.ThumbnailUrl" /></button>
+                            </div>
                         </MatTooltip>
-                        @{string videoID = video.VideoID;}
-                        <button class="btn btn-primary" @onclick=@(() => PlayVideo(videoID))>Play video</button>
+
                         <button class="btn btn-primary" @onclick=@(() => AddVideoToPlaylist(video))>Add to Playlist</button>
                     </div>
-
                 }
             </div>
         </div>
-    }
-    @if (hasAdded)
-    {
-        <div class="col">
-            <div>
 
-            </div><br />
-            @foreach (var video in VideosAdded)
+
+        <div class="col">
+            <div class="text-center">
+                <h4>Added to <strong>@Playlist.Name</strong></h4>
+            </div>
+            @if (hasAdded)
             {
-                <div class="card" style="height:auto; width:14em; flex:none; border-radius:.5em; border:.2em solid #000000; padding:1px; justify-content:center; margin:.3em">
-                    <p>@video.Title <img style="float:left" src="@video.ThumbnailUrl" /></p>
-                    <button class="btn btn-primary" @onclick=@(() =>RemoveFromPlaylist(video))>Remove</button>
-                </div>
+                <br />
+                @foreach (var video in VideosAdded)
+                {
+                    <div class="card" style="height:auto; width:14em; flex:none; border-radius:.5em; border:.2em solid #000000; padding:1px; justify-content:center; margin:.3em">
+                        <p>@video.Title</p>
+                        <button class="btn btn-primary" @onclick=@(() => RemoveFromPlaylist(video))>Remove</button>
+                    </div>
+                }
             }
         </div>
     }
@@ -61,7 +69,6 @@
     [CascadingParameter]
     public PlaylistModel Playlist { get; set; }
     public string SearchYouTube { get; set; }
-
     public List<VideoModel> Videos { get; set; }
     public List<VideoModel> VideosAdded = new List<VideoModel>();
     private bool videosReady = false;
@@ -70,14 +77,22 @@
     public async Task GetVideoResults()
     {
         Videos = await PlaylistService.GetYouTubeVideos(SearchYouTube);
+        var playlistVideos = await Database.GetPlaylistVideos(Playlist);
+        var matchedVideos = Videos.Intersect(playlistVideos).ToList();
+        VideosAdded.AddRange(matchedVideos);
+        if (matchedVideos.Count() > 0)
+            hasAdded = true;
         videosReady = true;
     }
-    public async Task PlayVideo(string videoID)
+    async void SearchVideoKeyup(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+            await GetVideoResults();
+    }
+    public async Task PlayVideo(VideoModel video)
     {
         VideoUrl = new List<VideoModel>();
-        var vid = Videos.Where(x => x.VideoID == videoID).FirstOrDefault();
-        await Task.Run(() => VideoUrl.Add(vid));
-        //var video = await Task.FromResult(videoID);        
+        await Task.Run(() => VideoUrl.Add(video));
         playReady = true;
     }
     public async Task AddVideoToPlaylist(VideoModel video)
@@ -85,17 +100,18 @@
         await Task.Run(() => Database.AddVideoToPlaylist(video, Playlist));
         await Task.Run(() => VideosAdded.Add(video));
         hasAdded = true;
+        StateHasChanged();
     }
     public async Task RemoveFromPlaylist(VideoModel video)
     {
-        await Task.Run(() => Database.RemoveVideoFromPlaylist(video));
+        await Task.Run(() => Database.RemoveVideoFromPlaylist(video, Playlist));
         await Task.Run(() => VideosAdded.Remove(video));
         if (VideosAdded.Count == 0)
             hasAdded = false;
     }
     public async Task AddVideosToDatabase()
     {
-        foreach (var video in VideosAdded)
+        foreach (var video in Videos)
         {
             await Task.Run(() => Database.AddVideoToPlaylist(video, Playlist));
             VideosAdded.Clear();
