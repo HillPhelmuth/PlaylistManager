@@ -14,7 +14,7 @@
 @inject IHttpContextAccessor HttpContextAccessor
 
 <div class="" style="width:9rem; padding:.7rem">
-    <p>Timer: @elapsedTime</p>
+    @*<p>Timer: @elapsedTime</p>*@
     Current playlist
     <h3>        
         @if (SelectedPlaylist != null)
@@ -119,12 +119,7 @@
     private string userId => HttpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
     protected override async Task OnInitializedAsync()
     {
-        //clock = new Stopwatch();
-        //clock.Start();
-        //elapsedSectonds = clock.Elapsed.Seconds < 60 ? clock.Elapsed.Seconds : 0;
-        //elapsedMinutes = clock.Elapsed.Minutes < 60 ? clock.Elapsed.Minutes : 0;
-        //elapsedHours = clock.Elapsed.Hours;
-        //stopwatchTime = @$"{elapsedHours.ToString()}:{elapsedMinutes.ToString()}:{elapsedSectonds.ToString()}";
+
         pageReady = false;
         UserPlaylists = await Database.GetUserPlaylists();
         if (Database.HasUser)
@@ -132,29 +127,24 @@
             pageReady = true;
             showPlaylists = true;
         }
-        StopWatch();
+        //StopWatch();
     }
-    protected async Task StopWatch()
-    {
-        stopwatchRunning = true;
-        while(stopwatchRunning)
-        {
-            
-            if (stopwatchRunning)
-            {
-                elapsedTime = elapsedTime.Add( new TimeSpan(0, 0, 1));
-                await Task.Delay(1000);
-                StateHasChanged();
-            }
-        }
-        //await Task.Run(() => clock = new Stopwatch());
-
-        //return base.OnAfterRenderAsync(firstRender);
-    }
-    //protected override Task OnAfterRenderAsync(bool firstRender)
+    //protected async Task StopWatch()
     //{
-    //    return StopWatch();
+    //    stopwatchRunning = true;
+    //    while(stopwatchRunning)
+    //    {
+
+    //        if (stopwatchRunning)
+    //        {
+    //            elapsedTime = elapsedTime.Add( new TimeSpan(0, 0, 1));
+    //            await Task.Delay(1000);
+    //            StateHasChanged();
+    //        }
+    //    }
+
     //}
+
     private async Task AddNewPlaylist(string playlistName)
     {
         PlaylistModel playlist = new PlaylistModel() { Name = playlistName, User_ID = userId };
