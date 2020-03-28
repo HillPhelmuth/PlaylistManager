@@ -1,12 +1,22 @@
 ﻿@page "/"
 @using PlaylistManager.Models
 @using PlaylistManager.Data
+@using PlaylistManager.Controllers
+@using System.Diagnostics;
+@using Microsoft.AspNetCore.Http;
+@using System.Security.Claims;
+@using System.IO
+@using PlaylistManager.Extentions
+@inject IJSRuntime JSRuntime
 @inject PlaylistService PlaylistService
-@inject PlaylistDatabaseService Database
+@inject PlaylistLiteDbService Database
+@inject ExcelController ExcelService
+@inject IHttpContextAccessor HttpContextAccessor
 
-<div class="" style="width:9em; padding:.7em">
-    <p>Current playlist:</p>
-    <h3>
+<div class="" style="width:9rem; padding:.7rem">
+    <p>Timer: @elapsedTime</p>
+    Current playlist
+    <h3>        
         @if (SelectedPlaylist != null)
         {
             @SelectedPlaylist.Name
@@ -14,7 +24,7 @@
     </h3>
 </div>
 <div class="text-center">
-
+    
     @if (pageReady)
     {
         <button class="btn btn-primary" @onclick=@(() => ChangePlaylist())>Change playlist</button>
@@ -25,76 +35,69 @@
     }
 </div>
 
-<div class="card-columns-three" style="width:60em">
-    @if (showPlaylists)
-    {
-        @if (pageReady)
+<div class="container">
+    <div class="row" style="width:60em">
+        @if (showPlaylists)
         {
-            <div class="card" style="width:22em; flex:none; border-radius:35px; border:5px solid #0094ff;
+            @if (pageReady)
+            {
+                <div class="col" style="width:22rem; flex:none; border-radius:35px; border:5px solid #0094ff;
         padding:15px; height:auto;">
 
-                <h6>Select Playlist</h6>
-                <select class="form-control" @bind="playlistName">
-                    <option value=""></option>
-                    @foreach (var playlist in UserPlaylists)
-                    {
-                        <option value="@playlist.Name">@playlist.Name</option>
-                    }
-                </select>
-                <button class="btn btn-primary" @onclick=@(() => SelectPlaylist(playlistName))>Select playlist</button>
+                    <h6>Select Playlist</h6>
+                    <select class="form-control" @bind="playlistName">
+                        <option value=""></option>
+                        @foreach (var playlist in UserPlaylists)
+                        {
+                            <option value="@playlist.Name">@playlist.Name</option>
+                        }
+                    </select>
+                    <button class="btn btn-primary" @onclick=@(() => SelectPlaylist(playlistName))>Select playlist</button>
 
-            </div>
-            <div class="card text-center" style="width:12em; flex:none; border-radius:35px; border:5px solid #0094ff;
-        padding:15px; height:auto; margin-left:5em">
-                <MatSlideToggle Style="margin-left:3.7em" @bind-Value="togglePlaylist"></MatSlideToggle>
-                <span>Add new Playlist</span>
-            </div>
+                </div>
+                <div class="col text-center" style="width:12rem; flex:none; border-radius:35px; border:5px solid #0094ff;
+        padding:15px; height:auto; margin-left:5rem">
+                    <button class="btn btn-primary" @onclick="ToggleNewPlaylist">Add new Playlist</button>
+
+                </div>
+            }
+            @if (togglePlaylist)
+            {
+
+                <div class="col" style="width:22rem; flex:none; border-radius:35px; border:5px solid #0094ff;
+        padding:10px; height:auto;">
+                    <h6>Add new Playlist</h6>
+                    <MatTextField @bind-Value="newPlaylist" Label="Add new Playlist"></MatTextField>
+                    <button class="btn btn-primary" @onclick=@(() => AddNewPlaylist(newPlaylist))>Add playlist</button>
+                </div>
+                <div class="col" style="width:22rem; flex:none; border-radius:35px; border:5px solid #0094ff;
+        padding:10px; height:auto;">
+                    <h5>Upload Playlist from Excel file</h5>
+                    <MatFileUpload OnChange="@ReadExcelFile"></MatFileUpload>
+
+                </div>
+            }
         }
-        @if (togglePlaylist)
-        {
-
-            <div class="card" style="width:22em; flex:none; border-radius:35px; border:5px solid #0094ff;
-        padding:15px; height:auto;">
-                <MatTextField @bind-Value="newPlaylist" Label="Add new Playlist"></MatTextField>
-                <button class="btn btn-primary" @onclick=@(() => AddNewPlaylist(newPlaylist))>Add</button>
-            </div>
-        }
-    }
-
-
+    </div>
 </div>
 @if (SelectedPlaylist != null)
 {
-    <div class="text-center content align-content-center">
-
-        <button class="btn btn-primary" @onclick="FromSearch">Search for videos</button>
-        <button class="btn btn-primary" @onclick="FromPlaylists">Watch Videos from Playlist</button>
-        <button class="btn btn-primary" @onclick="FromDelete">Delete Videos from playlist</button>
-
+    <div class="content text-center">
+        <CascadingValue Value="SelectedPlaylist">
+            <TabControl>
+                <TabPage Text="Search for videos">
+                    <SearchResults />
+                </TabPage>
+                <TabPage Text="Watch Videos from Playlist">
+                    <Playlists VideosChanged=@UpdateVideosList />
+                </TabPage>
+                <TabPage Text="Delete Videos from playlist">
+                    <DeleteVideos />
+                </TabPage>
+            </TabControl>
+        </CascadingValue>
     </div>
 }
-<div>
-
-    @if (fromPlaylists)
-    {
-        <CascadingValue Value="SelectedPlaylist">
-            <Playlists VideosChanged=@UpdateVideosList />
-        </CascadingValue>
-    }
-    @if (fromSearch)
-    {
-        <CascadingValue Value="SelectedPlaylist">
-            <SearchResults />
-        </CascadingValue>
-    }
-    @if (fromDelete)
-    {
-        <CascadingValue Value="SelectedPlaylist">
-            <DeleteVideos />
-        </CascadingValue>
-    }
-</div>
-
 @code{
     [Parameter]
     public List<PlaylistModel> UserPlaylists { get; set; }
@@ -106,13 +109,22 @@
     public string newPlaylist { get; set; }
     public List<string> PlaylistNames { get; set; }
     private bool pageReady;
-    private bool fromPlaylists;
-    private bool fromSearch;
     private bool togglePlaylist = false;
     private bool showPlaylists = false;
-    private bool fromDelete;
+    private TimeSpan elapsedTime = new TimeSpan(0, 0, 0);
+    private bool stopwatchRunning = false;
+    private long elapsedMinutes;
+    public string stopwatchTime;
+    private Stopwatch clock;
+    private string userId => HttpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
     protected override async Task OnInitializedAsync()
     {
+        //clock = new Stopwatch();
+        //clock.Start();
+        //elapsedSectonds = clock.Elapsed.Seconds < 60 ? clock.Elapsed.Seconds : 0;
+        //elapsedMinutes = clock.Elapsed.Minutes < 60 ? clock.Elapsed.Minutes : 0;
+        //elapsedHours = clock.Elapsed.Hours;
+        //stopwatchTime = @$"{elapsedHours.ToString()}:{elapsedMinutes.ToString()}:{elapsedSectonds.ToString()}";
         pageReady = false;
         UserPlaylists = await Database.GetUserPlaylists();
         if (Database.HasUser)
@@ -120,13 +132,35 @@
             pageReady = true;
             showPlaylists = true;
         }
-
+        StopWatch();
     }
+    protected async Task StopWatch()
+    {
+        stopwatchRunning = true;
+        while(stopwatchRunning)
+        {
+            
+            if (stopwatchRunning)
+            {
+                elapsedTime = elapsedTime.Add( new TimeSpan(0, 0, 1));
+                await Task.Delay(1000);
+                StateHasChanged();
+            }
+        }
+        //await Task.Run(() => clock = new Stopwatch());
+
+        //return base.OnAfterRenderAsync(firstRender);
+    }
+    //protected override Task OnAfterRenderAsync(bool firstRender)
+    //{
+    //    return StopWatch();
+    //}
     private async Task AddNewPlaylist(string playlistName)
     {
+        PlaylistModel playlist = new PlaylistModel() { Name = playlistName, User_ID = userId };
         await Task.Run(() => Database.AddPlaylist(playlistName));
-        UserPlaylists.Add(new PlaylistModel() { Name = playlistName });
-        SelectedPlaylist = UserPlaylists.Where(x => x.Name == playlistName).FirstOrDefault();
+        UserPlaylists.Add(playlist);
+        SelectedPlaylist = await Database.GetPlaylistWithKey(playlist);
         showPlaylists = false;
     }
     private void SelectPlaylist(string playlist)
@@ -134,27 +168,6 @@
         SelectedPlaylist = UserPlaylists.Where(x => x.Name == playlistName).FirstOrDefault();
         showPlaylists = false;
     }
-    private void FromSearch()
-    {
-        fromSearch = true;
-        fromPlaylists = false;
-        fromDelete = false;
-    }
-    private async Task FromPlaylists()
-    {
-        PlaylistVideos = await Database.GetPlaylistVideos(SelectedPlaylist);
-        fromSearch = false;
-        fromPlaylists = true;
-        fromDelete = false;
-    }
-    private async Task FromDelete()
-    {
-        PlaylistVideos = await Database.GetPlaylistVideos(SelectedPlaylist);
-        fromSearch = false;
-        fromPlaylists = false;
-        fromDelete = true;
-    }
-
     public void UpdateVideosList(List<VideoModel> videos)
     {
         PlaylistVideos = videos;
@@ -163,14 +176,39 @@
     }
     private async Task ChangePlaylist()
     {
-        SelectedPlaylist = new PlaylistModel();
-        await Task.Run(() =>
+        SelectedPlaylist = null;
+        newPlaylist = null;
+        UserPlaylists = await Database.GetUserPlaylists();
+        showPlaylists = true;
+    }
+    private void ToggleNewPlaylist()
+    {
+        togglePlaylist = !togglePlaylist;
+    }
+    async Task ReadExcelFile(IMatFileUploadEntry[] files)
+    {
+
+        var file = files.FirstOrDefault();
+        if (file == null)
+            return;
+        var filename = file.Name;
+        var playlistName = filename.Substring(0, filename.IndexOf("-"));
+        await AddNewPlaylist(playlistName);
+
+
+        var videos = await ExcelService.Import(file);
+        if (SelectedPlaylist == null)
         {
-            showPlaylists = true;
-            fromSearch = false;
-            fromPlaylists = false;
-            fromDelete = false;
-        });
+
+            return;
+        }
+        foreach (var video in videos)
+        {
+            await Database.AddVideoToPlaylist(video, SelectedPlaylist);
+        }
+
+
+
     }
 
 }

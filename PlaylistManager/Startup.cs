@@ -16,6 +16,8 @@ using Microsoft.Extensions.Hosting;
 using PlaylistManager.Areas.Identity;
 using PlaylistManager.Data;
 using Blazor.DragDrop.Core;
+using PlaylistManager.Controllers;
+using PlaylistManager.Interfaces;
 
 namespace PlaylistManager
 {
@@ -47,7 +49,11 @@ namespace PlaylistManager
             services.AddSingleton<WeatherForecastService>();
             services.AddScoped<PlaylistService>();
             services.AddTransient<PlaylistDatabaseService>();
+            services.AddScoped<ExcelController>();
             services.AddHttpContextAccessor();
+            services.Configure<LiteDbOptions>(Configuration.GetSection("LiteDbOptions"));
+            services.AddSingleton<IPlaylistLiteDbContext, PlaylistLiteDbContext>();
+            services.AddTransient<PlaylistLiteDbService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

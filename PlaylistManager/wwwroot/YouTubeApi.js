@@ -16,6 +16,9 @@
 //    console.log("Api ready");
 //    console.log(logstring);
 //}
+window.logitem = (logString) => {
+    console.log(logString);
+}
 window.removedItem = (number) => {
     var prefnum = number;
     console.log(prefnum);
@@ -79,14 +82,22 @@ window.getYouTube = (instance, video) => {
     function onPlayerReady(event) {        
         event.target.playVideo();
         console.log("player ready");
+    }    
+}
+(function () {
+
+    function saveAsFile(filename, bytesBase64) {
+        var link = document.createElement('a');
+        link.download = filename;
+        link.href = "data:application/octet-stream;base64," + bytesBase64;
+        document.body.appendChild(link); // Needed for Firefox
+        link.click();
+        document.body.removeChild(link);
     }
 
-    //window.startApi = function () {
-    //    var v = document.getElementById("player");
-
-    //    v.addEventListener("ended", function () {
-    //        DotNet.invokeMethodAsync("PlaylistManager", "PlayNext");
-    //        console.log("event listner triggered");
-    //    });
-    //}
-}
+    window.playlistManager = {
+        interop: {
+            saveAsFile
+        }
+    };
+})();

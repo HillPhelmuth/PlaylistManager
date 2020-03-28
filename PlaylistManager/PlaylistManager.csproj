@@ -14,10 +14,12 @@
 
   <ItemGroup>
     <PackageReference Include="blazor-dragdrop" Version="1.1.5" />
+    <PackageReference Include="EPPlus" Version="5.0.4" />
     <PackageReference Include="Google.Apis" Version="1.44.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.44.0" />
     <PackageReference Include="Google.Apis.Core" Version="1.44.0" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.44.0.1869" />
+    <PackageReference Include="LiteDB" Version="5.0.5" />
     <PackageReference Include="MatBlazor" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.2" />
@@ -25,6 +27,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
