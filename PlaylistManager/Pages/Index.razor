@@ -11,12 +11,12 @@
 @inject PlaylistService PlaylistService
 @inject PlaylistLiteDbService Database
 @inject ExcelController ExcelService
-@inject IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="" style="width:9rem; padding:.7rem">
-    @*<p>Timer: @elapsedTime</p>*@
+   
     Current playlist
-    <h3>        
+    <h3>
         @if (SelectedPlaylist != null)
         {
             @SelectedPlaylist.Name
@@ -24,7 +24,7 @@
     </h3>
 </div>
 <div class="text-center">
-    
+
     @if (pageReady)
     {
         <button class="btn btn-primary" @onclick=@(() => ChangePlaylist())>Change playlist</button>
@@ -110,16 +110,16 @@
     public List<string> PlaylistNames { get; set; }
     private bool pageReady;
     private bool togglePlaylist = false;
-    private bool showPlaylists = false;
-    private TimeSpan elapsedTime = new TimeSpan(0, 0, 0);
-    private bool stopwatchRunning = false;
-    private long elapsedMinutes;
-    public string stopwatchTime;
-    private Stopwatch clock;
-    private string userId => HttpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    private bool showPlaylists = false;    
+    private string userId { 
+        get 
+        {
+            var authState = AuthenticationStateProvider.GetAuthenticationStateAsync();
+            return authState.Result.User.Identity.Name;
+        }
+    }
     protected override async Task OnInitializedAsync()
     {
-
         pageReady = false;
         UserPlaylists = await Database.GetUserPlaylists();
         if (Database.HasUser)
@@ -127,24 +127,8 @@
             pageReady = true;
             showPlaylists = true;
         }
-        //StopWatch();
-    }
-    //protected async Task StopWatch()
-    //{
-    //    stopwatchRunning = true;
-    //    while(stopwatchRunning)
-    //    {
-
-    //        if (stopwatchRunning)
-    //        {
-    //            elapsedTime = elapsedTime.Add( new TimeSpan(0, 0, 1));
-    //            await Task.Delay(1000);
-    //            StateHasChanged();
-    //        }
-    //    }
-
-    //}
-
+        
+    }   
     private async Task AddNewPlaylist(string playlistName)
     {
         PlaylistModel playlist = new PlaylistModel() { Name = playlistName, User_ID = userId };
@@ -161,8 +145,7 @@
     public void UpdateVideosList(List<VideoModel> videos)
     {
         PlaylistVideos = videos;
-        var debugvideos = PlaylistVideos;
-        //StateHasChanged();
+        var debugvideos = PlaylistVideos;        
     }
     private async Task ChangePlaylist()
     {
@@ -177,28 +160,20 @@
     }
     async Task ReadExcelFile(IMatFileUploadEntry[] files)
     {
-
         var file = files.FirstOrDefault();
         if (file == null)
             return;
         var filename = file.Name;
         var playlistName = filename.Substring(0, filename.IndexOf("-"));
         await AddNewPlaylist(playlistName);
-
-
         var videos = await ExcelService.Import(file);
         if (SelectedPlaylist == null)
         {
-
             return;
         }
         foreach (var video in videos)
         {
             await Database.AddVideoToPlaylist(video, SelectedPlaylist);
         }
-
-
-
     }
-
 }

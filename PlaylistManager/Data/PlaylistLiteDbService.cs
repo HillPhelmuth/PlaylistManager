@@ -10,23 +10,30 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace PlaylistManager.Data
 {
     public class PlaylistLiteDbService
     {
-        private readonly LiteDatabase _database;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly LiteDatabase _database;        
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
+        
+        private string UserId
+        {
+            get
+            {
+                var authState = _authenticationStateProvider.GetAuthenticationStateAsync();
+                return authState.Result.User.Identity.Name;
+            }
+        }
 
-        private string UserId => _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
         public bool HasUser => !string.IsNullOrEmpty(UserId);
 
-        public PlaylistLiteDbService(IPlaylistLiteDbContext context, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment webHost)
+        public PlaylistLiteDbService(IPlaylistLiteDbContext context, AuthenticationStateProvider authenticationStateProvider)
         {
-            _httpContextAccessor = httpContextAccessor;
-            _database = context.Database;
-            _hostEnvironment = webHost;
+            _authenticationStateProvider = authenticationStateProvider;
+            _database = context.Database;           
         }
         
         [HttpPost]
@@ -79,11 +86,11 @@ namespace PlaylistManager.Data
         }
         [HttpPut]
         public async Task UpdatePlaylistVideos(VideoModel video)
-        {            
-            var dbVideos = _database.GetCollection<VideoModel>("Videos");            
-            var matchVideo = dbVideos.FindById(video.ID);                   
+        {
+            var dbVideos = _database.GetCollection<VideoModel>("Videos");
+            var matchVideo = dbVideos.FindById(video.ID);
             matchVideo.PreferenceID = video.PreferenceID;
-            await Task.Run(() => dbVideos.Update(matchVideo));            
+            await Task.Run(() => dbVideos.Update(matchVideo));
         }
         [HttpGet]
         public async Task<List<VideoModel>> GetPlaylistVideos(PlaylistModel playlist)

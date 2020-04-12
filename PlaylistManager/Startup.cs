@@ -50,10 +50,10 @@ namespace PlaylistManager
             services.AddScoped<PlaylistService>();
             services.AddTransient<PlaylistDatabaseService>();
             services.AddScoped<ExcelController>();
-            services.AddHttpContextAccessor();
+            services.AddHttpContextAccessor();            
             services.Configure<LiteDbOptions>(Configuration.GetSection("LiteDbOptions"));
             services.AddSingleton<IPlaylistLiteDbContext, PlaylistLiteDbContext>();
-            services.AddTransient<PlaylistLiteDbService>();
+            services.AddScoped<PlaylistLiteDbService>();
             services.AddSignalR().AddAzureSignalR(options =>
             {
                 options.ServerStickyMode =
