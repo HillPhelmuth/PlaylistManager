@@ -18,15 +18,16 @@ namespace PlaylistManager.Data
     {
         private readonly LiteDatabase _database;        
         private readonly AuthenticationStateProvider _authenticationStateProvider;
-        
-        private string UserId
-        {
-            get
-            {
-                var authState = _authenticationStateProvider.GetAuthenticationStateAsync();
-                return authState.Result.User.Identity.Name;
-            }
-        }
+
+        //private string UserId
+        //{
+        //    get
+        //    {
+        //        var authState = _authenticationStateProvider.GetAuthenticationStateAsync();
+        //        return authState.Result.User.Identity.Name;
+        //    }
+        //}
+        public string UserId { get; set; }        
 
         public bool HasUser => !string.IsNullOrEmpty(UserId);
 
@@ -109,6 +110,23 @@ namespace PlaylistManager.Data
             matched.Videos.Remove(video);
             dbPlaylists.Update(matched);
            await Task.Run(() => dbVideos.Delete(video.ID));
+        }
+        [HttpPost]
+        public async Task SetUserId(string userId)
+        {
+            var dbUsers = _database.GetCollection<TempUser>("Users");
+            var newUser = new TempUser() { UserId = UserId };
+            UserId = newUser.UserId;
+            await Task.Run(() => dbUsers.Insert(newUser));
+        }
+        [HttpGet]
+        public async Task<string> GetUserId(string userId)
+        {
+            var dbUsers = _database.GetCollection<TempUser>("Users");
+            var matchedUser = dbUsers.Find(x => x.UserId == userId).FirstOrDefault();
+            var userName = matchedUser.UserId;
+            UserId = userName;
+            return await Task.FromResult(userName);
         }
     }
 }

@@ -1,0 +1,145 @@
+﻿
+@inject IHttpContextAccessor HttpContextAccessor
+@inject PlaylistService PlaylistService
+@inject PlaylistLiteDbService Database
+<h3>LiteDbPage</h3>
+<div class="container">
+    <div class="row" style="width:60em">
+        @if (SelectedPlaylist != null)
+        {
+            <p>@SelectedPlaylist.Name</p>
+        }
+        @if (UserPlaylists != null)
+        {
+            <div class="col" style="width:22rem; flex:none; border-radius:35px; border:5px solid #0094ff;
+        padding:15px; height:auto;">
+                <h6>Select Playlist</h6>
+                <select class="form-control" @bind="playlistName">
+                    <option value=""></option>
+                    @foreach (var playlist in UserPlaylists)
+                    {
+                        <option value="@playlist.Name">@playlist.Name</option>
+                    }
+                </select>
+                <button class="btn btn-primary" @onclick=@(() => SelectPlaylist(playlistName))>Select playlist</button>
+            </div>
+        }
+        <div class="col" style="width:22rem; flex:none; border-radius:35px; border:5px solid #0094ff;
+        padding:10px; height:auto;">
+            <h6>Add new Playlist</h6>
+            <MatTextField @bind-Value="newPlaylist" Label="Add new Playlist"></MatTextField>
+            <button class="btn btn-primary" @onclick=@(() => AddNewPlaylist(newPlaylist))>Add playlist</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="text-center">
+            <input type="text" @bind="SearchYouTube" />
+            <button class="btn btn-primary" @onclick="GetVideoResults">Search</button>
+        </div>
+    </div>
+    <div class="row">
+        @if (PlaylistVideos != null)
+        {
+            <div class="col">
+                <button class="btn btn-primary" @onclick="AddVideos">Add to LiteDb</button>
+                @foreach (var video in PlaylistVideos)
+                {
+                    <div class="card mat-elevation-z24" style="height:auto; width:17em; flex:none; border-radius:.5em; border:.2em solid #000000; padding:1px; justify-content:center; margin:.3em">
+                        <MatTooltip Tooltip="@video.Description" Wrap="true">
+                            <div class="card-header">@video.Title</div>
+                            <div class="card-body">
+                                click to watch
+                                <button @onclick=@(() => PlayVideo(video))><img src="@video.ThumbnailUrl" />GetVideos</button>
+                            </div>
+                        </MatTooltip>
+
+                        @*<button class="btn btn-primary" @onclick=@(() => AddVideoToPlaylist(video))>Add to Playlist</button>*@
+                    </div>
+                }
+            </div>
+        }
+        <div class="col">
+            @if (PlaylistVids != null)
+            {
+                foreach (var vid in PlaylistVids)
+                {
+                    <p>@vid.Title</p>
+                }
+            }
+        </div>
+        <div class="col">
+            @if (playReady)
+            {
+                <CascadingValue Value="Video">
+                    <VideoPlayer />
+                </CascadingValue>
+            }
+        </div>
+    </div>
+    
+</div>
+@code {
+    [Parameter]
+    public List<PlaylistModel> UserPlaylists { get; set; }
+    [Parameter]
+    public PlaylistModel SelectedPlaylist { get; set; }
+    [Parameter]
+    public List<VideoModel> PlaylistVideos { get; set; }
+    [Parameter]
+    public List<VideoModel> Video { get; set; }
+    public List<VideoModel> PlaylistVids { get; set; }
+    private string playlistName;
+    public string SearchYouTube { get; set; }
+    public string newPlaylist { get; set; }
+    //bool pageReady = false;
+    bool videoListReady = false;
+    bool playReady = false;
+    bool videosReady = false;
+    private string userId => HttpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    protected override async Task OnInitializedAsync()
+    {
+        //pageReady = false;
+        UserPlaylists = await Database.GetUserPlaylists();
+        //if (Database.HasUser)
+        //{
+        //    pageReady = true;
+        //    showPlaylists = true;
+        //}
+    }
+    private async Task AddNewPlaylist(string playlistName)
+    {
+        PlaylistModel playlist = new PlaylistModel() { Name = playlistName, User_ID = userId };
+        await Task.Run(() => Database.AddPlaylist(playlistName));
+        UserPlaylists.Add(playlist);
+        SelectedPlaylist = await Database.GetPlaylistWithKey(playlist);
+
+    }
+    private void SelectPlaylist(string playlist)
+    {
+        SelectedPlaylist = UserPlaylists.Where(x => x.Name == playlistName).FirstOrDefault();
+
+    }
+    public async Task PlayVideo(VideoModel video)
+    {
+        Video = new List<VideoModel>();
+        await Task.Run(() => Video.Add(video));
+        playReady = true;
+    }
+    public async Task GetVideoResults()
+    {
+        PlaylistVideos = await PlaylistService.GetYouTubeVideos(SearchYouTube);
+        //var playlistVideos = await Database.GetPlaylistVideos(SelectedPlaylist);
+        videosReady = true;
+    }
+    private async Task AddVideos()
+    {
+        foreach (var vid in PlaylistVideos)
+        {
+            await Database.AddVideoToPlaylist(vid, SelectedPlaylist);
+        }
+        var litedbPlaylist = await Database.GetPlaylistVideos(SelectedPlaylist);
+        PlaylistVids = litedbPlaylist;
+    }
+
+}
