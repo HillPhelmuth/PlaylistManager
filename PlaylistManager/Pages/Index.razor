@@ -32,6 +32,8 @@
     else
     {
         <h2>Sign in to create or add to playlists</h2>
+        <MatTextField @bind-Value="userId" Label="Temporary User Id"></MatTextField>
+        <button class="btn btn-primary" @onclick="AddUser">Add Temp User</button>
     }
 </div>
 
@@ -110,25 +112,34 @@
     public List<string> PlaylistNames { get; set; }
     private bool pageReady;
     private bool togglePlaylist = false;
-    private bool showPlaylists = false;    
-    private string userId { 
-        get 
-        {
-            var authState = AuthenticationStateProvider.GetAuthenticationStateAsync();
-            return authState.Result.User.Identity.Name;
-        }
-    }
+    private bool showPlaylists = false;
+    string userId;
+    //private string userId { 
+    //    get 
+    //    {
+    //        var authState = AuthenticationStateProvider.GetAuthenticationStateAsync();
+    //        return authState.Result.User.Identity.Name;
+    //    }
+    //}
     protected override async Task OnInitializedAsync()
     {
         pageReady = false;
+
         UserPlaylists = await Database.GetUserPlaylists();
         if (Database.HasUser)
         {
             pageReady = true;
             showPlaylists = true;
         }
-        
-    }   
+
+    }
+    async Task AddUser()
+    {
+        pageReady = true;
+        showPlaylists = true;
+        Database.UserId = userId;
+        await Database.SetUserId(userId);
+    }
     private async Task AddNewPlaylist(string playlistName)
     {
         PlaylistModel playlist = new PlaylistModel() { Name = playlistName, User_ID = userId };
@@ -145,7 +156,7 @@
     public void UpdateVideosList(List<VideoModel> videos)
     {
         PlaylistVideos = videos;
-        var debugvideos = PlaylistVideos;        
+        var debugvideos = PlaylistVideos;
     }
     private async Task ChangePlaylist()
     {
