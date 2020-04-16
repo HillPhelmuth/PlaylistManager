@@ -16,25 +16,25 @@ namespace PlaylistManager.Data
 {
     public class PlaylistLiteDbService
     {
-        private readonly LiteDatabase _database;        
+        private readonly LiteDatabase _database;
         private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-        //private string UserId
-        //{
-        //    get
-        //    {
-        //        var authState = _authenticationStateProvider.GetAuthenticationStateAsync();
-        //        return authState.Result.User.Identity.Name;
-        //    }
-        //}
-        public string UserId { get; set; }        
+        private string UserId
+        {
+            get
+            {
+                var authState = _authenticationStateProvider.GetAuthenticationStateAsync();
+                return authState.Result.User.Identity.Name;
+            }
+        }
+        //public string UserId { get; set; }        
 
         public bool HasUser => !string.IsNullOrEmpty(UserId);
 
         public PlaylistLiteDbService(IPlaylistLiteDbContext context, AuthenticationStateProvider authenticationStateProvider)
         {
             _authenticationStateProvider = authenticationStateProvider;
-            _database = context.Database;           
+            _database = context.Database;
         }
         
         [HttpPost]
@@ -111,22 +111,22 @@ namespace PlaylistManager.Data
             dbPlaylists.Update(matched);
            await Task.Run(() => dbVideos.Delete(video.ID));
         }
-        [HttpPost]
-        public async Task SetUserId(string userId)
-        {
-            var dbUsers = _database.GetCollection<TempUser>("Users");
-            var newUser = new TempUser() { UserId = UserId };
-            UserId = newUser.UserId;
-            await Task.Run(() => dbUsers.Insert(newUser));
-        }
-        [HttpGet]
-        public async Task<string> GetUserId(string userId)
-        {
-            var dbUsers = _database.GetCollection<TempUser>("Users");
-            var matchedUser = dbUsers.Find(x => x.UserId == userId).FirstOrDefault();
-            var userName = matchedUser.UserId;
-            UserId = userName;
-            return await Task.FromResult(userName);
-        }
+        //[HttpPost]
+        //public async Task SetUserId(string userId)
+        //{
+        //    var dbUsers = _database.GetCollection<TempUser>("Users");
+        //    var newUser = new TempUser() { UserId = UserId };
+        //    UserId = newUser.UserId;
+        //    await Task.Run(() => dbUsers.Insert(newUser));
+        //}
+        //[HttpGet]
+        //public async Task<string> GetUserId(string userId)
+        //{
+        //    var dbUsers = _database.GetCollection<TempUser>("Users");
+        //    var matchedUser = dbUsers.Find(x => x.UserId == userId).FirstOrDefault();
+        //    var userName = matchedUser.UserId;
+        //    UserId = userName;
+        //    return await Task.FromResult(userName);
+        //}
     }
 }
