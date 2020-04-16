@@ -16,6 +16,5 @@ namespace PlaylistManager.Data
         }
         public DbSet<PlaylistModel> PlaylistsTable { get; set; }
         public DbSet<VideoModel> VideosTable { get; set; }
-        public DbSet<TempUser> TempUsers { get; set; }
     }
 }
