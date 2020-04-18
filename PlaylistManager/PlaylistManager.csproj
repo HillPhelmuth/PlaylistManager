@@ -20,6 +20,7 @@
     <Compile Remove="Data\WeatherForecast.cs" />
     <Compile Remove="Data\WeatherForecastService.cs" />
     <Compile Remove="Models\DemoResponse.cs" />
+    <Compile Remove="Models\TempUser.cs" />
   </ItemGroup>
 
   <ItemGroup>

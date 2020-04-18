@@ -191,16 +191,20 @@ app {
     orphans: 1;
     widows: 1
 }
-.card-columns-three {
-    -webkit-column-count: 3;
-    -moz-column-count: 3;
-    column-count: 3;
-    -webkit-column-gap: .25rem;
-    -moz-column-gap: .25rem;
-    column-gap: .05em;
-    orphans: 1;
-    widows: 1
-}
+    .card-columns-two .card {
+        display:inline-block;
+        width:100%
+    }
+    .card-columns-three {
+        -webkit-column-count: 3;
+        -moz-column-count: 3;
+        column-count: 3;
+        -webkit-column-gap: .25rem;
+        -moz-column-gap: .25rem;
+        column-gap: .05em;
+        orphans: 1;
+        widows: 1
+    }
 .checkboxThreeCol {
     -webkit-column-count: 3;
     -moz-column-count: 3;
