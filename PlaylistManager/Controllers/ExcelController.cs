@@ -22,9 +22,9 @@ namespace PlaylistManager.Controllers
     public class ExcelController : ControllerBase
     {
         private readonly IWebHostEnvironment _hostEnvironment;
-        private readonly PlaylistLiteDbService _databaseService;        
+        private readonly PlaylistDatabaseService _databaseService;        
 
-        public ExcelController(IWebHostEnvironment hostEnvironment, PlaylistLiteDbService databaseService)
+        public ExcelController(IWebHostEnvironment hostEnvironment, PlaylistDatabaseService databaseService)
         {
             _hostEnvironment = hostEnvironment;
             _databaseService = databaseService;
@@ -36,7 +36,7 @@ namespace PlaylistManager.Controllers
             string downloadUrl = baseUri;
             string folder = _hostEnvironment.WebRootPath;
             string excelName = $"{playlist.Name}-{DateTime.Now.ToString("yyyyMMddHHmmssfff")}.xlsx";
-            //string downloadUrl = string.Format("{0}://{1}/{2}", Request.Scheme, Request.Host, excelName);
+            
             FileInfo file = new FileInfo(Path.Combine(folder, excelName));
             if (file.Exists)
             {

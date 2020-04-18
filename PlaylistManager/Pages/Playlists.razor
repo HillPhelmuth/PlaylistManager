@@ -3,7 +3,7 @@
 @using PlaylistManager.Extentions
 @using PlaylistManager.Controllers
 @inject IJSRuntime JSRuntime
-@inject PlaylistLiteDbService Database
+@inject PlaylistDatabaseService Database
 @inject ExcelController ExcelService
 @inject NavigationManager NavigationManager
 <h3>Set your playlist order</h3>
@@ -72,7 +72,7 @@
         VideoUrls = OrderedVideos;
         foreach (var video in VideoUrls)
         {
-            await Database.UpdatePlaylistVideos(video);
+            await Database.UpdatePlaylistVideos(video, PlaylistName);
         }
         videosReady = true;
     }
