@@ -7,7 +7,8 @@
 
 <div class="text-center">
     <input type="text" @bind="SearchYouTube" @onkeyup="SearchVideoKeyup" />
-    <button class="btn btn-primary" @onclick="GetVideoResults">Search</button>
+    <button class="btn btn-primary" @onclick="GetVideoResults">Search and watch</button>
+    <button class="btn btn-secondary" @onclick="GetMaxResults">Search Simple</button>
 </div>
 <div>
     @if (playReady)
@@ -21,19 +22,19 @@
     @if (videosReady)
     {
         <span><button class="btn btn-primary" @onclick="AddVideosToDatabase">Add all</button><br /></span>
-        <div class="col" style="width:36em">
+        <div class="col" style="width:40em">
             <div class="text-center">
                 <h4>Add or watch videos</h4><br />
             </div>
-            <div class="card-columns-two" style="width:36em; height:auto">
+            <div class="card-columns-two" style="width:40em; margin-top:1em; padding:1em">
                 @foreach (var video in Videos)
                 {
-                    <div class="card mat-elevation-z24" style="height:auto; width:17em; flex:none; border-radius:.5em; border:.2em solid #000000; padding:1px; justify-content:center; margin:.3em">
+                    <div class="card mat-elevation-z24" style="width:17em; flex:none; border-radius:.5em; border:.2em solid #000000; padding:1px; justify-content:center; margin:.3em">
                         <MatTooltip Tooltip="@video.Description" Wrap="true">
                             <div class="card-header">@video.Title</div>
                             <div class="card-body">
                                 click to watch
-                            <button @onclick=@(() => PlayVideo(video))><img src="@video.ThumbnailUrl" /></button>
+                                <button @onclick=@(() => PlayVideo(video))><img src="@video.ThumbnailUrl" /></button>
                             </div>
                         </MatTooltip>
 
@@ -61,6 +62,18 @@
             }
         </div>
     }
+    @if (maxReady)
+    {
+<div class="checkboxThreeCol">
+    @foreach (var video in Videos)
+    {
+    <MatTooltip Tooltip="@video.Description" Wrap="true">
+        <MatCheckbox @bind-Value="video.IsSelected">@video.Title</MatCheckbox>
+    </MatTooltip>
+    }
+    <button class="btn btn-primary" @onclick="AddSelectedVideos">Add Selected</button>
+</div>
+    }
 </div>
 
 @code{
@@ -74,6 +87,7 @@
     private bool videosReady = false;
     private bool playReady = false;
     private bool hasAdded = false;
+    private bool maxReady = false;
     public async Task GetVideoResults()
     {
         Videos = await PlaylistService.GetYouTubeVideos(SearchYouTube);
@@ -83,6 +97,16 @@
         if (matchedVideos.Count() > 0)
             hasAdded = true;
         videosReady = true;
+    }
+    public async Task GetMaxResults()
+    {
+        Videos = await PlaylistService.GetYouTubeVideos(SearchYouTube, 20);
+        var playlistVideos = await Database.GetPlaylistVideos(Playlist);
+        var matchedVideos = Videos.Intersect(playlistVideos).ToList();
+        VideosAdded.AddRange(matchedVideos);
+        if (matchedVideos.Count() > 0)
+            hasAdded = true;
+        maxReady = true;
     }
     async void SearchVideoKeyup(KeyboardEventArgs args)
     {
@@ -117,5 +141,17 @@
             VideosAdded.Clear();
             hasAdded = false;
         }
+    }
+    async Task AddSelectedVideos()
+    {
+        var videos = Videos.Where(x => x.IsSelected).ToList();
+        await Task.Run(() => Database.AddVideosToPlaylist(videos, Playlist));
+        maxReady = false;
+        //foreach (var video in videos)
+        //{
+        //    await Task.Run(() => Database.AddVideoToPlaylist(video, Playlist));
+        //    VideosAdded.Clear();
+        //    hasAdded = false;
+        //}
     }
 }

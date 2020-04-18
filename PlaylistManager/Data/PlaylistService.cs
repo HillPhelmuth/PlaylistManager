@@ -19,7 +19,7 @@ namespace PlaylistManager.Data
             _configuration = configuration;
         }
         [HttpGet]
-        public List<SearchResult> SearchYouTube(string input)
+        public List<SearchResult> SearchYouTube(string input, int max = 10)
         {
             List<SearchResult> searchResults = new List<SearchResult>();
             var youtubeService = new YouTubeService(new BaseClientService.Initializer()
@@ -30,16 +30,16 @@ namespace PlaylistManager.Data
 
             SearchResource.ListRequest listRequest = youtubeService.Search.List("snippet");
             listRequest.Q = input;
-            listRequest.MaxResults = 10;
+            listRequest.MaxResults = max;
             listRequest.Type = "video";
             SearchListResponse response = listRequest.Execute();
 
             return response.Items.ToList();
 
         }
-        public async Task<List<VideoModel>> GetYouTubeVideos(string input)
+        public async Task<List<VideoModel>> GetYouTubeVideos(string input, int max = 10)
         {
-            var searchResults = SearchYouTube(input);
+            var searchResults = SearchYouTube(input, max);
             var videosList = new List<VideoModel>();
             foreach (var result in searchResults)
             {

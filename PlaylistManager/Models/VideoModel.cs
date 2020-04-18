@@ -27,5 +27,7 @@ namespace PlaylistManager.Models
         public string Description { get; set; }
         [NotMapped]
         public bool IsRemoved { get; set; }
+        [NotMapped]
+        public bool IsSelected { get; set; }
     }
 }

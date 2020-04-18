@@ -76,6 +76,20 @@ namespace PlaylistManager.Data
             await context.AddAsync(video);
             await context.SaveChangesAsync();
         }
+        [HttpPost]
+        public async Task AddVideosToPlaylist(List<VideoModel> videos, PlaylistModel playlist)
+        {
+            var context = _context;
+            var playlistId = context.PlaylistsTable
+                .Where(x => x.User_ID == UserId && x.Name == playlist.Name)
+                .Select(x => x.ID).FirstOrDefault();
+            foreach (var video in videos)
+            {
+                video.Playlist_ID = playlistId;
+                await context.AddAsync(video);
+            }
+            await context.SaveChangesAsync();
+        }
         [HttpPut]
         public async Task UpdatePlaylistVideos(VideoModel video, PlaylistModel playlist)
         {
