@@ -6,9 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\TableBuilderQueries\**" />
     <Compile Remove="Saved ReCreate Queries\**" />
+    <Content Remove="Data\TableBuilderQueries\**" />
     <Content Remove="Saved ReCreate Queries\**" />
+    <EmbeddedResource Remove="Data\TableBuilderQueries\**" />
     <EmbeddedResource Remove="Saved ReCreate Queries\**" />
+    <None Remove="Data\TableBuilderQueries\**" />
     <None Remove="Saved ReCreate Queries\**" />
   </ItemGroup>
 
