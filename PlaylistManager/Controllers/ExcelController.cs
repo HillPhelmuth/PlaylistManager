@@ -14,44 +14,21 @@ using PlaylistManager.Models;
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Diagnostics;
 using MatBlazor;
+using PlaylistManager.Interfaces;
 
 namespace PlaylistManager.Controllers
 {
     [Route("api/excel")]
     [ApiController]
-    public class ExcelController : ControllerBase
+    public class ExcelController : ControllerBase, IExcelExport, IExcelImport
     {
         private readonly IWebHostEnvironment _hostEnvironment;
-        private readonly PlaylistDatabaseService _databaseService;        
+        private readonly PlaylistDatabaseService _databaseService;
 
         public ExcelController(IWebHostEnvironment hostEnvironment, PlaylistDatabaseService databaseService)
         {
             _hostEnvironment = hostEnvironment;
             _databaseService = databaseService;
-        }
-
-        [HttpGet]
-        public async Task<DemoResponse<string>> Export(PlaylistModel playlist, string baseUri)
-        {
-            string downloadUrl = baseUri;
-            string folder = _hostEnvironment.WebRootPath;
-            string excelName = $"{playlist.Name}-{DateTime.Now.ToString("yyyyMMddHHmmssfff")}.xlsx";
-            
-            FileInfo file = new FileInfo(Path.Combine(folder, excelName));
-            if (file.Exists)
-            {
-                file.Delete();
-                file = new FileInfo(Path.Combine(folder, excelName));
-            }
-            List<VideoModel> videos = await _databaseService.GetPlaylistVideos(playlist);
-            using (var package = new ExcelPackage(file))
-            {
-                var workSheet = package.Workbook.Worksheets.Add("Sheet1");
-                workSheet.Cells.LoadFromCollection(videos, true);
-                package.Save();
-            }
-
-            return DemoResponse<string>.GetResult(0, "OK", downloadUrl);
         }
         [HttpGet("exportV2")]
         public async Task<byte[]> ExportV2(PlaylistModel playlist)
@@ -68,7 +45,7 @@ namespace PlaylistManager.Controllers
         [HttpPost("import")]
         public async Task<List<VideoModel>> Import(IMatFileUploadEntry file)
         {
-            
+
             var filename = file.Name;
             //if (!file.Name.Contains(".xls"))
             //    return;
@@ -94,15 +71,8 @@ namespace PlaylistManager.Controllers
                         videos.Add(video);
                     }
                 }
-            }            
-            
+            }
             return videos;
-            //var playlistObjects = await _databaseService.GetUserPlaylists();
-            //var playlistObject = playlistObjects.Where(x => x.Name == playlist).FirstOrDefault();
-            //foreach (var vid in videos)
-            //{
-            //   await _databaseService.AddVideoToPlaylist(vid, playlistObject);
-            //}
         }
     }
 }

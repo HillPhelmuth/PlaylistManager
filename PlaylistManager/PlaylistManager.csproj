@@ -17,6 +17,21 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\WeatherForecast.cs" />
+    <Compile Remove="Data\WeatherForecastService.cs" />
+    <Compile Remove="Models\DemoResponse.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Pages\Counter.razor" />
+    <Content Remove="Pages\FetchData.razor" />
+    <Content Remove="Pages\LiteDbPage.razor" />
+    <Content Remove="Shared\PagingControl.razor" />
+    <Content Remove="Shared\SurveyPrompt.razor" />
+    <Content Remove="wwwroot\PlaylistVideosLite-log.db" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="blazor-dragdrop" Version="1.1.5" />
     <PackageReference Include="EPPlus" Version="5.0.4" />
     <PackageReference Include="Google.Apis" Version="1.44.0" />

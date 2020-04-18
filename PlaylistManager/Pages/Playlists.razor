@@ -1,10 +1,6 @@
-﻿@using PlaylistManager.Models
-@using PlaylistManager.Data
-@using PlaylistManager.Extentions
-@using PlaylistManager.Controllers
-@inject IJSRuntime JSRuntime
+﻿@inject IJSRuntime JSRuntime
 @inject PlaylistDatabaseService Database
-@inject ExcelController ExcelService
+@inject IExcelExport ExcelService
 @inject NavigationManager NavigationManager
 <h3>Set your playlist order</h3>
 
@@ -29,7 +25,7 @@
 
                         <div>
                             <Draggable>
-                                <li class="list-group-item mat-elevation-z22" style="border-radius:3em; margin-left:5em; margin-right:5em; margin-bottom:.2em">
+                                <li class="list-group-item mat-elevation-z22 dragItem" style="border-radius:3em; margin-bottom:.1em">
                                     <span style="font-size:1.4em; margin-right:.8em" class="oi oi-elevator"></span>
                                     <span style="font-size:1.4em"> @video.Title</span>
                                     <span style="font-weight:800; margin-left:.5em">PlayOrder: @context.OrderPosition </span>
@@ -48,10 +44,7 @@
 @code {
     [CascadingParameter]
     public PlaylistModel PlaylistName { get; set; }
-
-    public List<VideoModel> Videos { get; set; }
-    [Parameter]
-    public EventCallback<List<VideoModel>> VideosChanged { get; set; }
+    public List<VideoModel> Videos { get; set; }   
     [Parameter]
     public List<VideoModel> VideoUrls { get; set; }
     private List<VideoModel> OrderedVideos = new List<VideoModel>();
@@ -65,9 +58,7 @@
     }
     public async Task PlayVideosInOrder()
     {
-        OrderedVideos = Videos.OrderBy(x => x.PreferenceID).ToList();
-        var videoIds = OrderedVideos.Select(x => x.VideoID).ToArray();
-        //OrderedVideos.RemoveAt(0);
+        OrderedVideos = Videos.OrderBy(x => x.PreferenceID).ToList();             
         await JSRuntime.InvokeAsync<object>("startYouTube");
         VideoUrls = OrderedVideos;
         foreach (var video in VideoUrls)
@@ -79,8 +70,7 @@
     private async Task ExportVideosExcel()
     {
         var baseUri = NavigationManager.BaseUri;
-        var excelBytes = await ExcelService.ExportV2(PlaylistName);
-        //await ExcelService.Export(SelectedPlaylist, baseUri);
+        var excelBytes = await ExcelService.ExportV2(PlaylistName);        
         await JSRuntime.SaveAs($"{PlaylistName.Name}-{PlaylistName.ID}.xlsx", excelBytes);
     }
 }

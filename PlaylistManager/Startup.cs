@@ -46,11 +46,11 @@ namespace PlaylistManager
             services.AddBlazorDragDrop();
             services.AddServerSideBlazor();
             services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
-            services.AddSingleton<WeatherForecastService>();
-            services.AddScoped<PlaylistService>();
+            services.AddScoped<IPlaylistService, PlaylistService>();
             services.AddTransient<PlaylistDatabaseService>();
-            services.AddScoped<ExcelController>();
-            services.AddHttpContextAccessor();            
+            services.AddScoped<IExcelExport, ExcelController>();
+            services.AddScoped<IExcelImport, ExcelController>();
+            services.AddHttpContextAccessor();
             services.Configure<LiteDbOptions>(Configuration.GetSection("LiteDbOptions"));
             services.AddSingleton<IPlaylistLiteDbContext, PlaylistLiteDbContext>();
             services.AddScoped<PlaylistLiteDbService>();

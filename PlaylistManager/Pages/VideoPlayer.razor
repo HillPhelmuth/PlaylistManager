@@ -1,12 +1,6 @@
-﻿@using MatBlazor
-@using PlaylistManager.Models
-@using PlaylistManager.Extentions
-@inject IJSRuntime JSRuntime
+﻿@inject IJSRuntime JSRuntime
 
-
-
-
-<div id="makePlayer" class="text-center" style="width:30em; margin-left:10em">
+<div id="makePlayer" class="text-center videoPlayer">
     <div id="player">
 
     </div>
@@ -14,8 +8,6 @@
 <div>
     <button class="btn btn-primary" @onclick="OkClick">Close Player</button>
 </div>
-
-
 
 @code {
     [CascadingParameter]
@@ -33,32 +25,32 @@
         var refThis = DotNetObjectReference.Create(this);
         var firstVideo = PrivateVideos.OrderBy(x => x.PreferenceID).FirstOrDefault();
         videoId = firstVideo.VideoID;
-        PrivateVideos.Remove(firstVideo);        
+        PrivateVideos.Remove(firstVideo);
         await JSRuntime.StartYouTube();
         await Task.Delay(1000);
-        await JSRuntime.InvokeAsync<object>("getYouTube", refThis, videoId);        
+        await JSRuntime.InvokeAsync<object>("getYouTube", refThis, videoId);
     }
     protected async Task OkClick()
     {
-        videosReady = false;        
+        videosReady = false;
         await JSRuntime.StopYouTubePlayer();
-        await Task.Delay(3000);        
+        await Task.Delay(3000);
         await JSRuntime.AddYouTubePlayer();
     }
     [JSInvokable]
     public async Task GetNextVideo()
-    {        
+    {
         await JSRuntime.StopYouTubePlayer();
-        
+
         await JSRuntime.StartYouTube();
         var refThis = DotNetObjectReference.Create(this);
         var firstVideo = PrivateVideos.OrderBy(x => x.PreferenceID).FirstOrDefault();
         videoId = firstVideo.VideoID;
         PrivateVideos.Remove(firstVideo);
         var debugvids = PrivateVideos;
-        
+
         await JSRuntime.AddYouTubePlayer();
         await Task.Delay(1000);
-        await JSRuntime.InvokeAsync<object>("getYouTube", refThis, videoId);        
+        await JSRuntime.InvokeAsync<object>("getYouTube", refThis, videoId);
     }
 }

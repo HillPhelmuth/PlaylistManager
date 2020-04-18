@@ -18,6 +18,15 @@
     <script src="_content/MatBlazor/dist/matBlazor.js"></script>
     <link href="_content/MatBlazor/dist/matBlazor.css" rel="stylesheet" />
     <link href="_content/blazor-dragdrop/dragdrop.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+
+    <script>       
+        MobileDragDrop.polyfill({
+            // use this to make use of the scroll behaviour
+            dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride
+        });
+    </script>
     <script type="text/javascript" src="~/YouTubeApi.js"></script>
 
 </head>

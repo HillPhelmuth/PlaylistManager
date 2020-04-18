@@ -1,6 +1,4 @@
-﻿@using PlaylistManager.Models
-@using PlaylistManager.Data
-@inject PlaylistService PlaylistService
+﻿@inject IPlaylistService PlaylistService
 @inject PlaylistDatabaseService Database
 
 <h3>Search YouTube</h3>
@@ -65,13 +63,15 @@
     @if (maxReady)
     {
 <div class="checkboxThreeCol">
+    <button class="btn btn-primary" @onclick="AddSelectedVideos">Add Selected</button>
+    <button class="btn btn-secondary" @onclick="SelectAll">Select All</button>
     @foreach (var video in Videos)
     {
-    <MatTooltip Tooltip="@video.Description" Wrap="true">
-        <MatCheckbox @bind-Value="video.IsSelected">@video.Title</MatCheckbox>
-    </MatTooltip>
+        <MatTooltip Tooltip="@video.Description" Wrap="true">
+            <MatCheckbox @bind-Value="video.IsSelected">@video.Title</MatCheckbox>
+        </MatTooltip>
     }
-    <button class="btn btn-primary" @onclick="AddSelectedVideos">Add Selected</button>
+
 </div>
     }
 </div>
@@ -147,11 +147,15 @@
         var videos = Videos.Where(x => x.IsSelected).ToList();
         await Task.Run(() => Database.AddVideosToPlaylist(videos, Playlist));
         maxReady = false;
-        //foreach (var video in videos)
-        //{
-        //    await Task.Run(() => Database.AddVideoToPlaylist(video, Playlist));
-        //    VideosAdded.Clear();
-        //    hasAdded = false;
-        //}
+    }
+    async Task SelectAll()
+    {
+        await Task.Run(() =>
+        {
+            foreach (var video in Videos)
+            {
+                video.IsSelected = true;
+            }
+        });
     }
 }

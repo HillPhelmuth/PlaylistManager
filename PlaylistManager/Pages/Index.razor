@@ -1,20 +1,13 @@
 ﻿@page "/"
-@using PlaylistManager.Models
-@using PlaylistManager.Data
-@using PlaylistManager.Controllers
-@using System.Diagnostics;
-@using Microsoft.AspNetCore.Http;
-@using System.Security.Claims;
-@using System.IO
-@using PlaylistManager.Extentions
-@inject IJSRuntime JSRuntime
-@inject PlaylistService PlaylistService
 @inject PlaylistDatabaseService Database
-@inject ExcelController ExcelService
+@inject IExcelImport ExcelService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
+    <div class="text-center">
+        <span style="font-size:1.75em">YouTube Playlist Manager</span>
+    </div>
 <div class="" style="width:9rem; padding:.7rem">
-   
+
     Current playlist
     <h3>
         @if (SelectedPlaylist != null)
@@ -23,15 +16,17 @@
         }
     </h3>
 </div>
-<div class="text-center">
+<div class="row">
 
     @if (pageReady)
     {
-        <button class="btn btn-primary" @onclick=@(() => ChangePlaylist())>Change playlist</button>
+        <div class="col" style="margin-left:auto; margin-right:auto">
+            <button class="btn btn-primary" @onclick=@(() => ChangePlaylist())>Change playlist</button>
+        </div>
     }
     else
     {
-        <h2>Sign in to create or add to playlists</h2>        
+        <h1 style="margin:auto">Sign in to create or add to playlists</h1>
     }
 </div>
 
@@ -41,7 +36,7 @@
         {
             @if (pageReady)
             {
-                <div class="col" style="width:22rem; flex:none; border-radius:35px; border:5px solid #0094ff;
+                <div class="col" style="width:22rem; flex:none; border-radius:35px; border:2px solid #0094ff;
         padding:15px; height:auto;">
 
                     <h6>Select Playlist</h6>
@@ -53,30 +48,44 @@
                         }
                     </select>
                     <button class="btn btn-primary" @onclick=@(() => SelectPlaylist(playlistName))>Select playlist</button>
-
-                </div>
-                <div class="col text-center" style="width:12rem; flex:none; border-radius:35px; border:5px solid #0094ff;
-        padding:15px; height:auto; margin-left:5rem">
+                    <hr />
                     <button class="btn btn-primary" @onclick="ToggleNewPlaylist">Add new Playlist</button>
-
+                    <hr />
+                    @if (togglePlaylist)
+                    {
+                        <div class="col" style="width:22rem; flex:none; padding:10px; height:auto;">
+                            <h6>Add new Playlist</h6>
+                            <MatTextField @bind-Value="newPlaylist" Label="Add new Playlist"></MatTextField>
+                            <button class="btn btn-primary" @onclick=@(() => AddNewPlaylist(newPlaylist))>Add playlist</button>
+                        </div>
+                        <div class="col" style="width:22rem; flex:none; padding:10px; height:auto;">
+                            <h5>Upload Playlist from Excel file</h5>
+                            <MatFileUpload OnChange="@ReadExcelFile"></MatFileUpload>
+                        </div>
+                    }
                 </div>
+                @*<div class="col text-center" style="width:12rem; flex:none; border-radius:35px; border:5px solid #0094ff;
+                    padding:15px; height:auto; margin-left:5rem">
+                                <button class="btn btn-primary" @onclick="ToggleNewPlaylist">Add new Playlist</button>
+
+                            </div>*@
             }
-            @if (togglePlaylist)
-            {
+            @*@if (togglePlaylist)
+                    {
 
-                <div class="col" style="width:22rem; flex:none; border-radius:35px; border:5px solid #0094ff;
-        padding:10px; height:auto;">
-                    <h6>Add new Playlist</h6>
-                    <MatTextField @bind-Value="newPlaylist" Label="Add new Playlist"></MatTextField>
-                    <button class="btn btn-primary" @onclick=@(() => AddNewPlaylist(newPlaylist))>Add playlist</button>
-                </div>
-                <div class="col" style="width:22rem; flex:none; border-radius:35px; border:5px solid #0094ff;
-        padding:10px; height:auto;">
-                    <h5>Upload Playlist from Excel file</h5>
-                    <MatFileUpload OnChange="@ReadExcelFile"></MatFileUpload>
+                        <div class="col" style="width:22rem; flex:none; border-radius:35px; border:2px solid #0094ff;
+                padding:10px; height:auto;">
+                            <h6>Add new Playlist</h6>
+                            <MatTextField @bind-Value="newPlaylist" Label="Add new Playlist"></MatTextField>
+                            <button class="btn btn-primary" @onclick=@(() => AddNewPlaylist(newPlaylist))>Add playlist</button>
+                        </div>
+                        <div class="col" style="width:22rem; flex:none; border-radius:35px; border:2px solid #0094ff;
+                padding:10px; height:auto;">
+                            <h5>Upload Playlist from Excel file</h5>
+                            <MatFileUpload OnChange="@ReadExcelFile"></MatFileUpload>
 
-                </div>
-            }
+                        </div>
+                    }*@
         }
     </div>
 </div>
@@ -89,7 +98,7 @@
                     <SearchResults />
                 </TabPage>
                 <TabPage Text="Watch Videos from Playlist">
-                    <Playlists VideosChanged=@UpdateVideosList />
+                    <Playlists />
                 </TabPage>
                 <TabPage Text="Delete Videos from playlist">
                     <DeleteVideos />
@@ -132,13 +141,6 @@
         }
 
     }
-    //async Task AddUser()
-    //{
-    //    pageReady = true;
-    //    showPlaylists = true;
-    //    Database.UserId = userId;
-    //    await Database.SetUserId(userId);
-    //}
     private async Task AddNewPlaylist(string playlistName)
     {
         PlaylistModel playlist = new PlaylistModel() { Name = playlistName, User_ID = userId };
@@ -155,7 +157,6 @@
     public void UpdateVideosList(List<VideoModel> videos)
     {
         PlaylistVideos = videos;
-        var debugvideos = PlaylistVideos;
     }
     private async Task ChangePlaylist()
     {

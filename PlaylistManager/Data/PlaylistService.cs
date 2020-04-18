@@ -4,6 +4,7 @@ using Google.Apis.YouTube.v3.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using PlaylistManager.Models;
+using PlaylistManager.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace PlaylistManager.Data
 {
-    public class PlaylistService
+    public class PlaylistService : IPlaylistService
     {
         private IConfiguration _configuration;
         public PlaylistService(IConfiguration configuration)
@@ -19,7 +20,7 @@ namespace PlaylistManager.Data
             _configuration = configuration;
         }
         [HttpGet]
-        public List<SearchResult> SearchYouTube(string input, int max = 10)
+        private List<SearchResult> SearchYouTube(string input, int max = 10)
         {
             List<SearchResult> searchResults = new List<SearchResult>();
             var youtubeService = new YouTubeService(new BaseClientService.Initializer()

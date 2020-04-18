@@ -28,9 +28,6 @@ namespace PlaylistManager.Extentions
         }
         public static ValueTask Log(this IJSRuntime js, string message) => js.InvokeVoidAsync("logitem", message);
         
-        //public static ValueTask<object> PlayVideoList(this IJSRuntime js, object obj, string videoId)
-        //{            
-        //    return js.InvokeAsync<object>("getYouTube", obj, videoId);
-        //}
+        
     }
 }
