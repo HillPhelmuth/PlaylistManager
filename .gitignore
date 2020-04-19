@@ -338,3 +338,5 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+/PlaylistManager/Data/TableBuilderQueries/VideosTable.sql
+/PlaylistManager/Data/TableBuilderQueries/PlaylistTable.sql
