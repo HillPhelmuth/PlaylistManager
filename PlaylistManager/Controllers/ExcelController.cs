@@ -21,13 +21,11 @@ namespace PlaylistManager.Controllers
     [Route("api/excel")]
     [ApiController]
     public class ExcelController : ControllerBase, IExcelExport, IExcelImport
-    {
-        private readonly IWebHostEnvironment _hostEnvironment;
+    {        
         private readonly PlaylistDatabaseService _databaseService;
 
-        public ExcelController(IWebHostEnvironment hostEnvironment, PlaylistDatabaseService databaseService)
-        {
-            _hostEnvironment = hostEnvironment;
+        public ExcelController(PlaylistDatabaseService databaseService)
+        {            
             _databaseService = databaseService;
         }
         [HttpGet("exportV2")]
