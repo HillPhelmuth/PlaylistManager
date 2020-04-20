@@ -6,6 +6,9 @@
     <div class="text-center">
         <span style="font-size:1.75em">YouTube Playlist Manager</span>
     </div>
+<div>
+    <span style="font-size:1.5em; color:red">@errorMessage</span>
+</div>
 <div class="text-center">
 
     Current playlist
@@ -63,29 +66,8 @@
                             <MatFileUpload OnChange="@ReadExcelFile"></MatFileUpload>
                         </div>
                     }
-                </div>
-                @*<div class="col text-center" style="width:12rem; flex:none; border-radius:35px; border:5px solid #0094ff;
-                    padding:15px; height:auto; margin-left:5rem">
-                                <button class="btn btn-primary" @onclick="ToggleNewPlaylist">Add new Playlist</button>
-
-                            </div>*@
-            }
-            @*@if (togglePlaylist)
-                    {
-
-                        <div class="col" style="width:22rem; flex:none; border-radius:35px; border:2px solid #0094ff;
-                padding:10px; height:auto;">
-                            <h6>Add new Playlist</h6>
-                            <MatTextField @bind-Value="newPlaylist" Label="Add new Playlist"></MatTextField>
-                            <button class="btn btn-primary" @onclick=@(() => AddNewPlaylist(newPlaylist))>Add playlist</button>
-                        </div>
-                        <div class="col" style="width:22rem; flex:none; border-radius:35px; border:2px solid #0094ff;
-                padding:10px; height:auto;">
-                            <h5>Upload Playlist from Excel file</h5>
-                            <MatFileUpload OnChange="@ReadExcelFile"></MatFileUpload>
-
-                        </div>
-                    }*@
+                </div>              
+            }           
         }
     </div>
 </div>
@@ -120,6 +102,7 @@
     private bool pageReady;
     private bool togglePlaylist = false;
     private bool showPlaylists = false;
+    private string errorMessage;
 
     private string userId
     {
@@ -173,8 +156,18 @@
     {
         var file = files.FirstOrDefault();
         if (file == null)
+        {
+            errorMessage = "No File Found";
             return;
+        }
+
         var filename = file.Name;
+        if (!filename.Contains(".xls"))
+        {
+            errorMessage = "Invalid file format. Please use .xlsx or .xls file type.";
+            StateHasChanged();
+            return;
+        }
         var playlistName = filename.Substring(0, filename.IndexOf("-"));
         await AddNewPlaylist(playlistName);
         var videos = await ExcelService.Import(file);

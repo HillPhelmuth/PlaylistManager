@@ -33,44 +33,52 @@ namespace PlaylistManager.Controllers
         {
             List<VideoModel> videos = await _databaseService.GetPlaylistVideos(playlist);
             var stream = new MemoryStream();
-            using (var package = new ExcelPackage(stream))
-            {
-                var workSheet = package.Workbook.Worksheets.Add("Sheet1");
-                workSheet.Cells.LoadFromCollection(videos, true);
-                return await Task.FromResult(package.GetAsByteArray());
-            }
+            using var package = new ExcelPackage(stream);
+            var workSheet = package.Workbook.Worksheets.Add("Sheet1");
+            workSheet.Cells.LoadFromCollection(videos, true);
+            return await Task.FromResult(package.GetAsByteArray());
         }
         [HttpPost("import")]
         public async Task<List<VideoModel>> Import(IMatFileUploadEntry file)
         {
 
             var filename = file.Name;
-            //if (!file.Name.Contains(".xls"))
-            //    return;
+            Console.WriteLine($"Filename is {filename}");
+            Console.WriteLine($"File type is {file.Type}");
+            if (!file.Name.Contains(".xls"))
+                return null;
             var videos = new List<VideoModel>();
             using (var stream = new MemoryStream())
             {
                 var sw = Stopwatch.StartNew();
                 await file.WriteToStreamAsync(stream);
                 sw.Stop();
-                using (var package = new ExcelPackage(stream))
-                {
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
-                    var rowCount = worksheet.Dimension.Rows;
-                    for (int row = 2; row <= rowCount; row++)
-                    {
-                        var video = new VideoModel()
-                        {
-                            Title = worksheet.Cells[row, 1].Value.ToString().Trim(),
-                            VideoID = worksheet.Cells[row, 2].Value.ToString().Trim(),
-                            ThumbnailUrl = worksheet.Cells[row, 6].Value.ToString().Trim(),
-                            Description = worksheet.Cells[row, 7].Value.ToString().Trim()
-                        };
-                        videos.Add(video);
-                    }
-                }
+                CreatePlaylistSheet(videos, stream);
             }
             return videos;
+        }
+
+        private static void CreatePlaylistSheet(List<VideoModel> videos, MemoryStream stream)
+        {
+            using var package = new ExcelPackage(stream);
+            ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+            var rowCount = worksheet.Dimension.Rows;
+            AddVideosToExcel(videos, worksheet, rowCount);
+        }
+
+        private static void AddVideosToExcel(List<VideoModel> videos, ExcelWorksheet worksheet, int rowCount)
+        {
+            for (int row = 2; row <= rowCount; row++)
+            {
+                var video = new VideoModel()
+                {
+                    Title = worksheet.Cells[row, 1].Value.ToString().Trim(),
+                    VideoID = worksheet.Cells[row, 2].Value.ToString().Trim(),
+                    ThumbnailUrl = worksheet.Cells[row, 6].Value.ToString().Trim(),
+                    Description = worksheet.Cells[row, 7].Value.ToString().Trim()
+                };
+                videos.Add(video);
+            }
         }
     }
 }
