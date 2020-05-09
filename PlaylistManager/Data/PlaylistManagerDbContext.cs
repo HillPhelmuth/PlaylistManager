@@ -1,9 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PlaylistManager.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace PlaylistManager.Data
 {
@@ -15,6 +11,6 @@ namespace PlaylistManager.Data
 
         }
         public DbSet<PlaylistModel> PlaylistsTable { get; set; }
-        public DbSet<VideoModel> VideosTable { get; set; }        
+        public DbSet<VideoModel> VideosTable { get; set; }
     }
 }

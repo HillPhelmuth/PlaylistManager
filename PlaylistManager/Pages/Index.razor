@@ -1,13 +1,11 @@
 ﻿@page "/"
-@inject PlaylistDatabaseService Database
-@inject IExcelImport ExcelService
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inherits IndexModel
 
-    <div class="text-center">
+<div class="text-center">
         <span style="font-size:1.75em">YouTube Playlist Manager</span>
     </div>
 <div>
-    <span style="font-size:1.5em; color:red">@errorMessage</span>
+    <span style="font-size:1.5em; color:red">@ErrorMessage</span>
 </div>
 <div class="text-center">
 
@@ -21,10 +19,10 @@
 </div>
 <div class="row">
 
-    @if (pageReady)
+    @if (PageReady)
     {
         <div class="col text-center" style="margin-left:auto; margin-right:auto">
-            <button class="btn btn-primary" @onclick=@(() => ChangePlaylist())>Change playlist</button>
+            <button class="btn btn-primary" @onclick=@(async() => await ChangePlaylist())>Change playlist</button>
         </div>
     }
     else
@@ -35,31 +33,30 @@
 
 <div class="container">
     <div class="row" style="width:60em">
-        @if (showPlaylists)
+        @if (ShowPlaylists)
         {
-            @if (pageReady)
+            @if (PageReady)
             {
-                <div class="col" style="width:22rem; flex:none; border-radius:35px; border:2px solid #0094ff;
-        padding:15px; height:auto;">
+                <div class="col mat-elevation-z24 playlistForm" style="flex:none;">
 
                     <h6>Select Playlist</h6>
-                    <select class="form-control" @bind="playlistName">
+                    <select class="form-control" @bind="PlaylistName">
                         <option value=""></option>
                         @foreach (var playlist in UserPlaylists)
                         {
                             <option value="@playlist.Name">@playlist.Name</option>
                         }
                     </select>
-                    <button class="btn btn-primary" @onclick=@(() => SelectPlaylist(playlistName))>Select playlist</button>
+                    <button class="btn btn-primary" @onclick="SelectPlaylist">Select playlist</button>
                     <hr />
                     <button class="btn btn-primary" @onclick="ToggleNewPlaylist">Add new Playlist</button>
                     <hr />
-                    @if (togglePlaylist)
+                    @if (TogglePlaylist)
                     {
                         <div class="col" style="width:22rem; flex:none; padding:10px; height:auto;">
                             <h6>Add new Playlist</h6>
-                            <MatTextField @bind-Value="newPlaylist" Label="Add new Playlist"></MatTextField>
-                            <button class="btn btn-primary" @onclick=@(() => AddNewPlaylist(newPlaylist))>Add playlist</button>
+                            <MatTextField @bind-Value="NewPlaylist" Label="Add new Playlist"></MatTextField>
+                            <button class="btn btn-primary" @onclick=@(() => AddNewPlaylist(NewPlaylist))>Add playlist</button>
                         </div>
                         <div class="col" style="width:22rem; flex:none; padding:10px; height:auto;">
                             <h5>Upload Playlist from Excel file</h5>
@@ -90,94 +87,5 @@
     </div>
 }
 @code{
-    [Parameter]
-    public List<PlaylistModel> UserPlaylists { get; set; }
-    [Parameter]
-    public PlaylistModel SelectedPlaylist { get; set; }
-    [Parameter]
-    public List<VideoModel> PlaylistVideos { get; set; }
-    private string playlistName;
-    public string newPlaylist { get; set; }
-    public List<string> PlaylistNames { get; set; }
-    private bool pageReady;
-    private bool togglePlaylist = false;
-    private bool showPlaylists = false;
-    private string errorMessage;
-
-    private string userId
-    {
-        get
-        {
-            var authState = AuthenticationStateProvider.GetAuthenticationStateAsync();
-            return authState.Result.User.Identity.Name;
-        }
-    }
-    protected override async Task OnInitializedAsync()
-    {
-        pageReady = false;
-
-        UserPlaylists = await Database.GetUserPlaylists();
-        if (Database.HasUser)
-        {
-            pageReady = true;
-            showPlaylists = true;
-        }
-
-    }
-    private async Task AddNewPlaylist(string playlistName)
-    {
-        PlaylistModel playlist = new PlaylistModel() { Name = playlistName, User_ID = userId };
-        await Task.Run(() => Database.AddPlaylist(playlistName));
-        UserPlaylists.Add(playlist);
-        SelectedPlaylist = await Database.GetPlaylistWithKey(playlist);
-        showPlaylists = false;
-    }
-    private void SelectPlaylist(string playlist)
-    {
-        SelectedPlaylist = UserPlaylists.Where(x => x.Name == playlistName).FirstOrDefault();
-        showPlaylists = false;
-    }
-    public void UpdateVideosList(List<VideoModel> videos)
-    {
-        PlaylistVideos = videos;
-    }
-    private async Task ChangePlaylist()
-    {
-        SelectedPlaylist = null;
-        newPlaylist = null;
-        UserPlaylists = await Database.GetUserPlaylists();
-        showPlaylists = true;
-    }
-    private void ToggleNewPlaylist()
-    {
-        togglePlaylist = !togglePlaylist;
-    }
-    async Task ReadExcelFile(IMatFileUploadEntry[] files)
-    {
-        var file = files.FirstOrDefault();
-        if (file == null)
-        {
-            errorMessage = "No File Found";
-            return;
-        }
-
-        var filename = file.Name;
-        if (!filename.Contains(".xls"))
-        {
-            errorMessage = "Invalid file format. Please use .xlsx or .xls file type.";
-            StateHasChanged();
-            return;
-        }
-        var playlistName = filename.Substring(0, filename.IndexOf("-"));
-        await AddNewPlaylist(playlistName);
-        var videos = await ExcelService.Import(file);
-        if (SelectedPlaylist == null)
-        {
-            return;
-        }
-        foreach (var video in videos)
-        {
-            await Database.AddVideoToPlaylist(video, SelectedPlaylist);
-        }
-    }
+   
 }

@@ -6,20 +6,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\Migrations\**" />
     <Compile Remove="Data\TableBuilderQueries\**" />
     <Compile Remove="Saved ReCreate Queries\**" />
+    <Content Remove="Data\Migrations\**" />
     <Content Remove="Data\TableBuilderQueries\**" />
     <Content Remove="Saved ReCreate Queries\**" />
+    <EmbeddedResource Remove="Data\Migrations\**" />
     <EmbeddedResource Remove="Data\TableBuilderQueries\**" />
     <EmbeddedResource Remove="Saved ReCreate Queries\**" />
+    <None Remove="Data\Migrations\**" />
     <None Remove="Data\TableBuilderQueries\**" />
     <None Remove="Saved ReCreate Queries\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\PlaylistLiteDbContext.cs" />
+    <Compile Remove="Data\PlaylistLiteDbService.cs" />
     <Compile Remove="Data\WeatherForecast.cs" />
     <Compile Remove="Data\WeatherForecastService.cs" />
+    <Compile Remove="Extentions\LiteDbExtensions.cs" />
+    <Compile Remove="Interfaces\IPlaylistLiteDbContext.cs" />
     <Compile Remove="Models\DemoResponse.cs" />
+    <Compile Remove="Models\LiteDbPlaylistModel.cs" />
     <Compile Remove="Models\TempUser.cs" />
   </ItemGroup>
 
@@ -30,6 +39,7 @@
     <Content Remove="Shared\PagingControl.razor" />
     <Content Remove="Shared\SurveyPrompt.razor" />
     <Content Remove="wwwroot\PlaylistVideosLite-log.db" />
+    <Content Remove="wwwroot\PlaylistVideosLite.db" />
   </ItemGroup>
 
   <ItemGroup>

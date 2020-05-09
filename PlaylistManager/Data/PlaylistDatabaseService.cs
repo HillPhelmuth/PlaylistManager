@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PlaylistManager.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Authorization;
 
@@ -16,15 +13,15 @@ namespace PlaylistManager.Data
         private readonly AuthenticationStateProvider _authenticationStateProvider;
 
         private readonly PlaylistManagerDbContext _context;
-      
+
 
         public PlaylistDatabaseService(AuthenticationStateProvider authenticationStateProvider, PlaylistManagerDbContext context)
         {
             _authenticationStateProvider = authenticationStateProvider;
             _context = context;
-            
+
         }
-       
+
         private string UserId
         {
             get

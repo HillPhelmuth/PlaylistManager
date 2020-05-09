@@ -1,5 +1,8 @@
-﻿@inject IPlaylistService PlaylistService
-@inject PlaylistDatabaseService Database
+﻿@inherits SearchResultsModel
+<style type="text/css">
+    
+</style>
+
 
 <h3>Search YouTube</h3>
 
@@ -9,7 +12,7 @@
     <button class="btn btn-secondary" @onclick="GetMaxResults">Search Simple</button>
 </div>
 <div>
-    @if (playReady)
+    @if (PlayReady)
     {
         <CascadingValue Value="VideoUrl">
             <VideoPlayer />
@@ -17,7 +20,7 @@
     }
 </div>
 <div class="row">
-    @if (videosReady)
+    @if (VideosReady)
     {
         <span><button class="btn btn-primary" @onclick="AddVideosToDatabase">Add all</button><br /></span>
         <div class="col" style="width:40em">
@@ -27,7 +30,7 @@
             <div class="card-columns-two" style="width:40em; margin-top:1em; padding:1em">
                 @foreach (var video in Videos)
                 {
-                    <div class="card mat-elevation-z24" style="width:17em; flex:none; border-radius:.5em; border:.2em solid #000000; padding:1px; justify-content:center; margin:.3em">
+                    <div class="card mat-elevation-z24 videocard" style="flex:none">
                         <MatTooltip Tooltip="@video.Description" Wrap="true">
                             <div class="card-header">@video.Title</div>
                             <div class="card-body">
@@ -47,12 +50,12 @@
             <div class="text-center">
                 <h4>Added to <strong>@Playlist.Name</strong></h4>
             </div>
-            @if (hasAdded)
+            @if (HasAdded)
             {
                 <br />
                 @foreach (var video in VideosAdded)
                 {
-                    <div class="card" style="height:auto; width:14em; flex:none; border-radius:.5em; border:.2em solid #000000; padding:1px; justify-content:center; margin:.3em">
+                    <div class="card vidadded" style="flex:none;">
                         <p>@video.Title</p>
                         <button class="btn btn-primary" @onclick=@(() => RemoveFromPlaylist(video))>Remove</button>
                     </div>
@@ -60,102 +63,22 @@
             }
         </div>
     }
-    @if (maxReady)
+    @if (MaxReady)
     {
-<div class="checkboxThreeCol">
-    <button class="btn btn-primary" @onclick="AddSelectedVideos">Add Selected</button>
-    <button class="btn btn-secondary" @onclick="SelectAll">Select All</button>
-    @foreach (var video in Videos)
-    {
-        <MatTooltip Tooltip="@video.Description" Wrap="true">
-            <MatCheckbox @bind-Value="video.IsSelected">@video.Title</MatCheckbox>
-        </MatTooltip>
-    }
+        <div class="checkboxThreeCol">
+            <button class="btn btn-primary" @onclick="AddSelectedVideos">Add Selected</button>
+            <button class="btn btn-secondary" @onclick="SelectAll">Select All</button>
+            @foreach (var video in Videos)
+            {
+                <MatTooltip Tooltip="@video.Description" Wrap="true">
+                    <MatCheckbox @bind-Value="video.IsSelected">@video.Title</MatCheckbox>
+                </MatTooltip>
+            }
 
-</div>
+        </div>
     }
 </div>
 
 @code{
-    [Parameter]
-    public List<VideoModel> VideoUrl { get; set; }
-    [CascadingParameter]
-    public PlaylistModel Playlist { get; set; }
-    public string SearchYouTube { get; set; }
-    public List<VideoModel> Videos { get; set; }
-    public List<VideoModel> VideosAdded = new List<VideoModel>();
-    private bool videosReady = false;
-    private bool playReady = false;
-    private bool hasAdded = false;
-    private bool maxReady = false;
-    public async Task GetVideoResults()
-    {
-        Videos = await PlaylistService.GetYouTubeVideos(SearchYouTube);
-        var playlistVideos = await Database.GetPlaylistVideos(Playlist);
-        var matchedVideos = Videos.Intersect(playlistVideos).ToList();
-        VideosAdded.AddRange(matchedVideos);
-        if (matchedVideos.Count() > 0)
-            hasAdded = true;
-        videosReady = true;
-    }
-    public async Task GetMaxResults()
-    {
-        Videos = await PlaylistService.GetYouTubeVideos(SearchYouTube, 20);
-        var playlistVideos = await Database.GetPlaylistVideos(Playlist);
-        var matchedVideos = Videos.Intersect(playlistVideos).ToList();
-        VideosAdded.AddRange(matchedVideos);
-        if (matchedVideos.Count() > 0)
-            hasAdded = true;
-        maxReady = true;
-    }
-    async void SearchVideoKeyup(KeyboardEventArgs args)
-    {
-        if (args.Key == "Enter")
-            await GetVideoResults();
-    }
-    public async Task PlayVideo(VideoModel video)
-    {
-        VideoUrl = new List<VideoModel>();
-        await Task.Run(() => VideoUrl.Add(video));
-        playReady = true;
-    }
-    public async Task AddVideoToPlaylist(VideoModel video)
-    {
-        await Task.Run(() => Database.AddVideoToPlaylist(video, Playlist));
-        await Task.Run(() => VideosAdded.Add(video));
-        hasAdded = true;
-        StateHasChanged();
-    }
-    public async Task RemoveFromPlaylist(VideoModel video)
-    {
-        await Task.Run(() => Database.RemoveVideoFromPlaylist(video, Playlist));
-        await Task.Run(() => VideosAdded.Remove(video));
-        if (VideosAdded.Count == 0)
-            hasAdded = false;
-    }
-    public async Task AddVideosToDatabase()
-    {
-        foreach (var video in Videos)
-        {
-            await Task.Run(() => Database.AddVideoToPlaylist(video, Playlist));
-            VideosAdded.Clear();
-            hasAdded = false;
-        }
-    }
-    async Task AddSelectedVideos()
-    {
-        var videos = Videos.Where(x => x.IsSelected).ToList();
-        await Task.Run(() => Database.AddVideosToPlaylist(videos, Playlist));
-        maxReady = false;
-    }
-    async Task SelectAll()
-    {
-        await Task.Run(() =>
-        {
-            foreach (var video in Videos)
-            {
-                video.IsSelected = true;
-            }
-        });
-    }
+
 }

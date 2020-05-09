@@ -10,12 +10,12 @@ namespace PlaylistManager.Models
     [Serializable]
     [Table("Playlists")]
     public class PlaylistModel
-    {        
+    {
         [JsonIgnore]
         public int ID { get; set; }
-        
+
         public string Name { get; set; }
-        
+
         public string User_ID { get; set; }
     }
 }

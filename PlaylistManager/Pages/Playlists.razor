@@ -1,19 +1,16 @@
-﻿@inject IJSRuntime JSRuntime
-@inject PlaylistDatabaseService Database
-@inject IExcelExport ExcelService
-@inject NavigationManager NavigationManager
+﻿@inherits PlaylistsModel
 <h3>Set your playlist order</h3>
 
 <div>
-    @if (videosReady)
+    @if (VideosReady)
     {
-        <CascadingValue Value="videosReady">
-            <CascadingValue Value="VideoUrls">
-                <VideoPlayer />
-            </CascadingValue>
+        @*<CascadingValue Value="VideosReady">*@
+        <CascadingValue Value="VideoUrls">
+            <VideoPlayer />
         </CascadingValue>
+        @*</CascadingValue>*@
     }
-    @if (pageReady)
+    @if (PageReady)
     {
         <div class="text-center">
             <button class="btn btn-primary" @onclick="PlayVideosInOrder">Play Videos</button>
@@ -42,35 +39,5 @@
 </div>
 
 @code {
-    [CascadingParameter]
-    public PlaylistModel PlaylistName { get; set; }
-    public List<VideoModel> Videos { get; set; }   
-    [Parameter]
-    public List<VideoModel> VideoUrls { get; set; }
-    private List<VideoModel> OrderedVideos = new List<VideoModel>();
-    [Parameter]
-    public bool videosReady { get; set; } = false;
-    private bool pageReady = false;
-    protected override async Task OnInitializedAsync()
-    {
-        Videos = await Database.GetPlaylistVideos(PlaylistName);
-        pageReady = true;
-    }
-    public async Task PlayVideosInOrder()
-    {
-        OrderedVideos = Videos.OrderBy(x => x.PreferenceID).ToList();             
-        await JSRuntime.InvokeAsync<object>("startYouTube");
-        VideoUrls = OrderedVideos;
-        foreach (var video in VideoUrls)
-        {
-            await Database.UpdatePlaylistVideos(video, PlaylistName);
-        }
-        videosReady = true;
-    }
-    private async Task ExportVideosExcel()
-    {
-        var baseUri = NavigationManager.BaseUri;
-        var excelBytes = await ExcelService.ExportV2(PlaylistName);        
-        await JSRuntime.SaveAs($"{PlaylistName.Name}-{PlaylistName.ID}.xlsx", excelBytes);
-    }
+
 }
