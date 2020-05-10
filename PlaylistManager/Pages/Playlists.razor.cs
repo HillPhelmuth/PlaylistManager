@@ -23,7 +23,7 @@ namespace PlaylistManager.Pages
         public List<VideoModel> VideoUrls { get; set; }
         protected List<VideoModel> OrderedVideos = new List<VideoModel>();
         [Parameter]
-        public bool VideosReady { get; set; } = false;
+        public bool IsPlayerReady { get; set; }
         protected bool PageReady { get; set; }
         protected override async Task OnInitializedAsync()
         {
@@ -39,12 +39,17 @@ namespace PlaylistManager.Pages
             {
                 await Database.UpdatePlaylistVideos(video, PlaylistName);
             }
-            VideosReady = true;
+            IsPlayerReady = true;
         }
         protected async Task ExportVideosExcel()
         {
             var excelBytes = await ExcelService.ExportV2(PlaylistName);
             await JSRuntime.SaveAs($"{PlaylistName.Name}-{PlaylistName.ID}.xlsx", excelBytes);
+        }
+        protected void OnPlayerReadyChanged(bool isClosePlayer)
+        {
+            IsPlayerReady = isClosePlayer;
+            StateHasChanged();
         }
     }
 }

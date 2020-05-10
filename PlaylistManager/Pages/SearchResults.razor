@@ -1,8 +1,4 @@
 ﻿@inherits SearchResultsModel
-<style type="text/css">
-    
-</style>
-
 
 <h3>Search YouTube</h3>
 
@@ -12,10 +8,10 @@
     <button class="btn btn-secondary" @onclick="GetMaxResults">Search Simple</button>
 </div>
 <div>
-    @if (PlayReady)
+    @if (IsPlayerReady)
     {
         <CascadingValue Value="VideoUrl">
-            <VideoPlayer />
+            <VideoPlayer PlayerReadyChanged="OnPlayerReadyChanged" />
         </CascadingValue>
     }
 </div>
@@ -34,7 +30,7 @@
                         <MatTooltip Tooltip="@video.Description" Wrap="true">
                             <div class="card-header">@video.Title</div>
                             <div class="card-body">
-                                click to watch
+                                click to watch<br/>
                                 <button @onclick=@(() => PlayVideo(video))><img src="@video.ThumbnailUrl" /></button>
                             </div>
                         </MatTooltip>

@@ -14,9 +14,8 @@ namespace PlaylistManager.Pages
     {
         [CascadingParameter]
         public List<VideoModel> VideoUrls { get; set; }
-        //[CascadingParameter]
-        //public bool VideosReady { get; set; }
-
+        [Parameter]
+        public EventCallback<bool> PlayerReadyChanged { get; set; }
         protected List<VideoModel> PrivateVideos { get; set; }
         protected string VideoId { get; set; }
 
@@ -34,8 +33,8 @@ namespace PlaylistManager.Pages
         protected async Task OkClick()
         {
             await JSRuntime.StopYouTubePlayer();
-            await Task.Delay(3000);
-            await JSRuntime.AddYouTubePlayer();
+            await Task.Delay(1000);
+            await PlayerReadyChanged.InvokeAsync(false);
         }
         [JSInvokable]
         // ReSharper disable once UnusedMember.Global -JSInvokable used by javascript code
@@ -47,10 +46,6 @@ namespace PlaylistManager.Pages
             PrivateVideos.Remove(firstVideo);
             await JSRuntime.StopYouTubePlayer();
             await JSRuntime.StartYouTube();
-            //var refThis = DotNetObjectReference.Create(this);
-            //var firstVideo = PrivateVideos.OrderBy(x => x.PreferenceID).FirstOrDefault();
-            //VideoId = firstVideo?.VideoID;
-            //PrivateVideos.Remove(firstVideo);
             await JSRuntime.AddYouTubePlayer();
             await Task.Delay(1000);
             await JSRuntime.InvokeAsync<object>("getYouTube", refThis, VideoId);

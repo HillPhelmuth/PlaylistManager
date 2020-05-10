@@ -22,28 +22,29 @@ namespace PlaylistManager.Pages
         public List<VideoModel> Videos { get; set; }
         public List<VideoModel> VideosAdded = new List<VideoModel>();
         protected bool VideosReady { get; set; }
-        protected bool PlayReady { get; set; }
+        protected bool IsPlayerReady { get; set; }
         protected bool HasAdded { get; set; }
         protected bool MaxReady { get; set; }
         public async Task GetVideoResults()
         {
             Videos = await PlaylistService.GetYouTubeVideos(SearchYouTube);
-            var playlistVideos = await Database.GetPlaylistVideos(Playlist);
-            var matchedVideos = Videos.Intersect(playlistVideos).ToList();
-            VideosAdded.AddRange(matchedVideos);
-            //if (matchedVideos.Any())
-            HasAdded = matchedVideos.Any();
+            await DisplayResults();
             VideosReady = true;
+            MaxReady = false;
         }
         public async Task GetMaxResults()
         {
             Videos = await PlaylistService.GetYouTubeVideos(SearchYouTube, 20);
+            await DisplayResults();
+            MaxReady = true;
+            VideosReady = false;
+        }
+        private async Task DisplayResults()
+        {
             var playlistVideos = await Database.GetPlaylistVideos(Playlist);
             var matchedVideos = Videos.Intersect(playlistVideos).ToList();
             VideosAdded.AddRange(matchedVideos);
-            //if (matchedVideos.Any())
             HasAdded = matchedVideos.Any();
-            MaxReady = true;
         }
         protected async void SearchVideoKeyup(KeyboardEventArgs args)
         {
@@ -53,7 +54,7 @@ namespace PlaylistManager.Pages
         public Task PlayVideo(VideoModel video)
         {
             VideoUrl = new List<VideoModel> { video };
-            PlayReady = true;
+            IsPlayerReady = true;
             return Task.CompletedTask;
         }
         public async Task AddVideoToPlaylist(VideoModel video)
@@ -66,7 +67,6 @@ namespace PlaylistManager.Pages
         public async Task RemoveFromPlaylist(VideoModel video)
         {
             VideosAdded.Remove(video);
-            //if (!VideosAdded.Any())
             HasAdded = VideosAdded.Any();
             await Database.RemoveVideoFromPlaylist(video, Playlist);
         }
@@ -92,6 +92,11 @@ namespace PlaylistManager.Pages
                 video.IsSelected = true;
             }
             return Task.CompletedTask;
+        }
+        protected void OnPlayerReadyChanged(bool isClosePlayer)
+        {
+            IsPlayerReady = isClosePlayer;
+            StateHasChanged();
         }
     }
 }

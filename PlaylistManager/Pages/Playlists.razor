@@ -2,13 +2,11 @@
 <h3>Set your playlist order</h3>
 
 <div>
-    @if (VideosReady)
+    @if (IsPlayerReady)
     {
-        @*<CascadingValue Value="VideosReady">*@
         <CascadingValue Value="VideoUrls">
-            <VideoPlayer />
+            <VideoPlayer PlayerReadyChanged="OnPlayerReadyChanged" />
         </CascadingValue>
-        @*</CascadingValue>*@
     }
     @if (PageReady)
     {
